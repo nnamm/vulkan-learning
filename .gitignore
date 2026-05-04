@@ -1,3 +1,4 @@
-/assets
-/lib
-/build
+assets/
+lib/
+build/
+.cache/

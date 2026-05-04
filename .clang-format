@@ -1,0 +1,7 @@
+BasedOnStyle: Google
+AccessModifierOffset: -1
+AllowShortIfStatementsOnASingleLine: true
+BreakBeforeBraces: Attach
+ColumnLimit: 80
+DerivePointerAlignment: true
+IndentWidth: 2

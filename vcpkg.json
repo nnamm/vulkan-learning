@@ -1,0 +1,16 @@
+{
+  "name": "vulkan-learning",
+  "version-string": "0.1.0",
+  "dependencies": ["glfw3", "glm", "assimp", "stb"],
+  "builtin-baseline": "cf9b6f1a47898a888f9e86e346a9adfa68357380",
+  "overrides": [
+    {
+      "name": "glfw3",
+      "version": "3.3.8"
+    },
+    {
+      "name": "assimp",
+      "version": "5.4.0"
+    }
+  ]
+}
