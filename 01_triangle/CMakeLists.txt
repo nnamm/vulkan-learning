@@ -3,6 +3,16 @@ add_executable(VLTriangle WIN32
   main.cpp
 )
 
+# ヘッダーファイル検索パス
+# target_include_directories(VLTriangle PRIVATE
+#     ${CMAKE_SOURCE_DIR}/lib/stage1
+# )
+
+# 実行ファイルを作成するためのソースファイル
+# target_sources(VLTriangle PRIVATE
+#   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/hogehoge.cpp"
+# )
+
 # 外部ライブラリのリンク
 target_link_libraries(VLTriangle PRIVATE
   Vulkan::Vulkan
