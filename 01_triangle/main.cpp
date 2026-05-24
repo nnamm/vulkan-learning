@@ -4,12 +4,20 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include "core/glfw_surface_provider.h"
 #include "core/vulkan_context.h"
 #include "triangle_app.h"
 
 int __stdcall wWinMain(_In_ HINSTANCE hInstance,
                        _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine,
                        _In_ int nShowCmd) {
+#if _DEBUG
+  // エラーをコンソール出力（書籍と違う部分）
+  AllocConsole();
+  freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
+  freopen_s(reinterpret_cast<FILE**>(stderr), "CONOUT$", "w", stderr);
+#endif
+
   UNREFERENCED_PARAMETER(hPrevInstance);
   UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -19,7 +27,9 @@ int __stdcall wWinMain(_In_ HINSTANCE hInstance,
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
   // ウィンドウの作成
-  auto window = glfwCreateWindow(1280, 720, "HelloWindow", nullptr, nullptr);
+  GLFWwindow* window =
+      glfwCreateWindow(1280, 720, "Triangle", nullptr, nullptr);
+  GLFWSurfaceProvider surfaceProvider(window);
 
   // Vulkanの初期化
   auto& vulkanCtx = VulkanContext::Get();
@@ -31,6 +41,8 @@ int __stdcall wWinMain(_In_ HINSTANCE hInstance,
                            extensions + extCount);
     }
   };
+  vulkanCtx.Initialize("Triangle", &surfaceProvider);
+  vulkanCtx.RecreateSwapchain();
 
   // アプリケーションの初期化
   TriangleApp theApp{};
