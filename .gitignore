@@ -1,4 +1,9 @@
 assets/
-lib/
-build/
+lib/stage1/common/*.txt
+lib/stage1/core/*.txt
+lib/stage1/render/*.txt
+lib/stage2/
+
 .cache/
+_tmp/
+build/
