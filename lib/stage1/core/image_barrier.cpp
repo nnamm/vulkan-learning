@@ -1,0 +1,72 @@
+﻿#include "core/image_barrier.h"
+
+#include "core/image_resource.h"
+
+ImageLayoutTransition ImageLayoutTransition::FromUndefinedToColorAttachment() {
+  return {.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+          .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+          .srcAccessMask = 0,
+          .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+          .srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+          .dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+}
+
+ImageLayoutTransition ImageLayoutTransition::FromPresentSrcToColorAttachment() {
+  return {.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+          .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+          .srcAccessMask = 0,
+          .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+          .srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+          .dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+}
+
+ImageLayoutTransition ImageLayoutTransition::FromColorToPresent() {
+  return {.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+          .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+          .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+          .dstAccessMask = 0,
+          .srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+          .dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT};
+}
+
+ImageLayoutTransition ImageLayoutTransition::FromUndefToTransferDst() {
+  return {.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+          .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+          .srcAccessMask = 0,
+          .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+          .srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+          .dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT};
+}
+
+ImageLayoutTransition ImageLayoutTransition::FromTransferDstToTransferSrc() {
+  return {.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+          .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+          .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+          .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+          .srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT,
+          .dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT};
+}
+
+ImageLayoutTransition ImageLayoutTransition::ToShaderReadonlyOptimal(
+    const IImageResource* image) {
+  return {.oldLayout = image->GetLayout(),
+          .newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+          .srcAccessMask = image->GetAccessFlags(),
+          .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+          .srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+                      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+          .dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT};
+}
+
+ImageLayoutTransition ImageLayoutTransition::ToStorageImageGeneralLayout(
+    const IImageResource* image) {
+  return {
+      .oldLayout = image->GetLayout(),
+      .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+      .srcAccessMask = image->GetAccessFlags(),
+      .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+      .srcStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+                  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+      .dstStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
+                  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT};
+}
