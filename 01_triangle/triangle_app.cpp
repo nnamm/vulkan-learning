@@ -1,14 +1,51 @@
 #include "triangle_app.h"
 
 #include <chrono>
+#include <cstring>
 #include <thread>
 
+#include "core/buffer_resource.h"
 #include "core/swapchain.h"
 #include "core/vulkan_context.h"
 
-void TriangleApp::OnInitialize() {}
+void TriangleApp::OnInitialize() {
+  InitializeTriangleVertexBuffer();
+  InitializeGraphicsPipeline();
+}
 
-void TriangleApp::OnCleanup() {}
+void TriangleApp::OnCleanup() {
+  auto& vulkanCtx = VulkanContext::Get();
+  auto device = vulkanCtx.GetVkDevice();
+
+  // GPU状態がアイドルになるのを待ってから後始末を開始
+  vkDeviceWaitIdle(device);
+
+  if (m_pipeline != VK_NULL_HANDLE) {
+    vkDestroyPipeline(device, m_pipeline, nullptr);
+  }
+  if (m_pipelineLayout != VK_NULL_HANDLE) {
+    vkDestroyPipelineLayout(device, m_pipelineLayout, nullptr);
+  }
+  if (m_vertexBuffer) {
+    m_vertexBuffer->Cleanup();
+  }
+  m_vertexBuffer.reset();
+}
+
+void TriangleApp::InitializeTriangleVertexBuffer() {
+  const std::vector<Vertex> triangleVertices = {
+      {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},  // 赤
+      {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},   // 緑
+      {{0.0f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},    // 青
+  };
+  VkDeviceSize bufferSize = sizeof(Vertex) * triangleVertices.size();
+  m_vertexBuffer = VertexBuffer::Create(
+      bufferSize, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  void* p = m_vertexBuffer->Map();
+  memcpy(p, triangleVertices.data(), bufferSize);
+  m_vertexBuffer->Unmap();
+}
 
 void TriangleApp::OnDrawFrame() {
   auto& vulkanCtx = VulkanContext::Get();

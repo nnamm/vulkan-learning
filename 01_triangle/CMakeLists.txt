@@ -6,6 +6,8 @@ target_sources(VkTriangle PRIVATE
   main.cpp
   triangle_app.cpp
 
+  "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/asset_path.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/buffer_resource.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/command_buffer.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/glfw_surface_provider.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/image_barrier.cpp"

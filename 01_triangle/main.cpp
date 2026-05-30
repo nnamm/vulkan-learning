@@ -1,6 +1,11 @@
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include <cstdint>
+#include <cstdio>
+#include <filesystem>
+
+#include "core/asset_path.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -8,9 +13,14 @@
 #include "core/vulkan_context.h"
 #include "triangle_app.h"
 
+namespace fs = std::filesystem;
+
 int __stdcall wWinMain(_In_ HINSTANCE hInstance,
                        _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine,
                        _In_ int nShowCmd) {
+  UNREFERENCED_PARAMETER(hPrevInstance);
+  UNREFERENCED_PARAMETER(lpCmdLine);
+
 #if _DEBUG
   // エラーをコンソール出力（書籍と違う部分）
   AllocConsole();
@@ -18,8 +28,14 @@ int __stdcall wWinMain(_In_ HINSTANCE hInstance,
   freopen_s(reinterpret_cast<FILE**>(stderr), "CONOUT$", "w", stderr);
 #endif
 
-  UNREFERENCED_PARAMETER(hPrevInstance);
-  UNREFERENCED_PARAMETER(lpCmdLine);
+  // カレントディレクトリの設定（本書と異なり、WIN32としてここに統一）
+  wchar_t exePath[MAX_PATH];
+  GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+  fs::path exeDir = fs::path(exePath).parent_path();
+  SetCurrentDirectoryW(exeDir.c_str());
+
+  fs::path assetDir = exeDir / "../assets";
+  SetAssetRootPath(assetDir);
 
   // 初期化処理
   glfwInit();
@@ -63,4 +79,4 @@ int __stdcall wWinMain(_In_ HINSTANCE hInstance,
   glfwDestroyWindow(window);
   glfwTerminate();
   return 0;
-}
+}  // namespace std::filesystem
