@@ -3,7 +3,7 @@
 #include "core/vulkan_context.h"
 
 template <typename T>
-void BufferResource<typename T>::Cleanup() {
+void BufferResource<T>::Cleanup() {
   VulkanContext& context = VulkanContext::Get();
   VkDevice device = context.GetVkDevice();
 
@@ -21,7 +21,10 @@ void BufferResource<typename T>::Cleanup() {
 template <typename T>
 VkDescriptorBufferInfo BufferResource<T>::GetDescriptorInfo() const {
   return VkDescriptorBufferInfo{
-      .buffer = m_buffer, .offset = 0, .range = m_size};
+      .buffer = m_buffer,
+      .offset = 0,
+      .range = m_size,
+  };
 }
 
 template <typename T>
@@ -86,3 +89,6 @@ void VertexBuffer::Unmap() {
 
   vkUnmapMemory(VulkanContext::Get().GetVkDevice(), m_memory);
 }
+
+// Chapter3時点で必要なコード
+template class BufferResource<VertexBuffer>;
