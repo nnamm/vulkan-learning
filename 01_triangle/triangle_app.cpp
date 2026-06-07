@@ -1,14 +1,130 @@
 #include "triangle_app.h"
 
+#include <array>
 #include <chrono>
+#include <cstdint>
+#include <cstring>
+#include <stdexcept>
 #include <thread>
 
+#include "core/asset_path.h"
+#include "core/buffer_resource.h"
+#include "core/graphics_pipeline_builder.h"
+#include "core/shader_loader.h"
 #include "core/swapchain.h"
 #include "core/vulkan_context.h"
 
-void TriangleApp::OnInitialize() {}
+void TriangleApp::OnInitialize() {
+  InitializeTriangleVertexBuffer();
+  InitializeGraphicsPipeline();
+}
 
-void TriangleApp::OnCleanup() {}
+void TriangleApp::OnCleanup() {
+  auto& vulkanCtx = VulkanContext::Get();
+  auto device = vulkanCtx.GetVkDevice();
+
+  // GPU状態がアイドルになるのを待ってから後始末を開始
+  vkDeviceWaitIdle(device);
+
+  if (m_pipeline != VK_NULL_HANDLE) {
+    vkDestroyPipeline(device, m_pipeline, nullptr);
+  }
+  if (m_pipelineLayout != VK_NULL_HANDLE) {
+    vkDestroyPipelineLayout(device, m_pipelineLayout, nullptr);
+  }
+  if (m_vertexBuffer) {
+    m_vertexBuffer->Cleanup();
+  }
+  m_vertexBuffer.reset();
+}
+
+void TriangleApp::InitializeTriangleVertexBuffer() {
+  const std::vector<Vertex> triangleVertices = {
+      {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},  // 赤
+      {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},   // 緑
+      {{0.0f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},    // 青
+  };
+  VkDeviceSize bufferSize = sizeof(Vertex) * triangleVertices.size();
+  m_vertexBuffer = VertexBuffer::Create(
+      bufferSize, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  void* p = m_vertexBuffer->Map();
+  memcpy(p, triangleVertices.data(), bufferSize);
+  m_vertexBuffer->Unmap();
+}
+
+void TriangleApp::InitializeGraphicsPipeline() {
+  auto& vulkanCtx = VulkanContext::Get();
+  auto& swapchain = vulkanCtx.GetSwapchain();
+
+  // PipilineLayoutの作成
+  VkPipelineLayoutCreateInfo layoutInfo{
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+  auto result = vkCreatePipelineLayout(vulkanCtx.GetVkDevice(), &layoutInfo,
+                                       nullptr, &m_pipelineLayout);
+  if (result != VK_SUCCESS) {
+    throw std::runtime_error("failed to create pipeline layout");
+  }
+  vulkanCtx.SetDebugObjectName(m_pipelineLayout, VK_OBJECT_TYPE_PIPELINE_LAYOUT,
+                               "MyPipelineLayout");
+
+  VkShaderModule vertShaderModule = loader::LoadShaderModule(
+      GetAssetPath(AssetType::Shader, "triangle/triangle.vert.spv"));
+  VkShaderModule fragShaderModule = loader::LoadShaderModule(
+      GetAssetPath(AssetType::Shader, "triangle/triangle.frag.spv"));
+
+  // バインディング情報（1つの頂点バッファバインディング）
+  VkVertexInputBindingDescription bindingDecsription{
+      .binding = 0,
+      .stride = sizeof(Vertex),
+      .inputRate = VK_VERTEX_INPUT_RATE_VERTEX};
+
+  // 属性情報（location 0: position, location 1: color）
+  std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{
+      VkVertexInputAttributeDescription{
+          .location = 0,
+          .binding = 0,
+          .format = VK_FORMAT_R32G32B32_SFLOAT,
+          .offset = offsetof(Vertex, position),
+      },
+      VkVertexInputAttributeDescription{
+          .location = 1,
+          .binding = 0,
+          .format = VK_FORMAT_R32G32B32_SFLOAT,
+          .offset = offsetof(Vertex, color),
+      },
+  };
+
+  GraphicsPipelineBuilder builder{};
+  builder.AddShaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertShaderModule);
+  builder.AddShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragShaderModule);
+  builder.SetVertexInput(&bindingDecsription, 1, attributeDescriptions.data(),
+                         uint32_t(attributeDescriptions.size()));
+  auto swapchainExtent = swapchain->GetExtent();
+  VkRect2D scissor = {
+      .offset = {0, 0},
+      .extent = swapchainExtent,
+  };
+  VkViewport viewport = {
+      .x = 0,
+      .y = 0,
+      .width = float(swapchainExtent.width),
+      .height = float(swapchainExtent.height),
+      .minDepth = 0.0f,
+      .maxDepth = 1.0f,
+  };
+  builder.SetViewport(viewport, scissor);
+  builder.SetPipelineLayout(m_pipelineLayout);
+
+  auto colorFormat = swapchain->GetFormat().format;
+  builder.UseDynamicRendering(colorFormat);
+
+  m_pipeline = builder.Build();
+
+  auto device = vulkanCtx.GetVkDevice();
+  vkDestroyShaderModule(device, vertShaderModule, nullptr);
+  vkDestroyShaderModule(device, fragShaderModule, nullptr);
+}
 
 void TriangleApp::OnDrawFrame() {
   auto& vulkanCtx = VulkanContext::Get();
@@ -53,6 +169,15 @@ void TriangleApp::OnDrawFrame() {
                                 .colorAttachmentCount = 1,
                                 .pColorAttachments = &colorAttachment};
   vkCmdBeginRendering(*commandBuffer, &renderingInfo);
+
+  // 3角形の描画
+  vkCmdBindPipeline(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    m_pipeline);
+  auto vb = m_vertexBuffer->GetVkBuffer();
+  VkDeviceSize offsets[] = {0};
+  vkCmdBindVertexBuffers(*commandBuffer, 0, 1, &vb, offsets);
+
+  vkCmdDraw(*commandBuffer, 3, 1, 0, 0);
 
   vkCmdEndRendering(*commandBuffer);
 

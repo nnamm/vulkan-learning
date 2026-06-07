@@ -1,5 +1,7 @@
 #include "core/vulkan_context.h"
 
+#include <cstdint>
+
 #include "core/surface_provider.h"
 #include "core/swapchain.h"
 
@@ -148,6 +150,23 @@ void VulkanContext::SubmitPresent() {
 
 VulkanContext::FrameContext* VulkanContext::GetCurrentFrameContext() {
   return &m_frameContext[m_currentFrameIndex];
+}
+
+uint32_t VulkanContext::FindMemoryType(const VkMemoryRequirements& requirements,
+                                       VkMemoryPropertyFlags properties) const {
+  for (uint32_t i = 0; i < m_memoryProperties.memoryTypeCount; i++) {
+    const bool isTypeCompatibe = (requirements.memoryTypeBits & (1 << i)) != 0;
+    const bool hasDesiredProperties =
+        (m_memoryProperties.memoryTypes[i].propertyFlags & properties) ==
+        properties;
+
+    if (isTypeCompatibe && hasDesiredProperties) {
+      // メモリプロパティを満たし、memoryTypeBitsに含まれている
+      return i;
+    }
+  }
+
+  throw std::runtime_error("failed to find suitable memory type!");
 }
 
 void VulkanContext::SetDebugObjectName(void* objectHandle, VkObjectType type,

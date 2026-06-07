@@ -6,9 +6,13 @@ target_sources(VkTriangle PRIVATE
   main.cpp
   triangle_app.cpp
 
+  "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/asset_path.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/buffer_resource.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/command_buffer.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/glfw_surface_provider.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/graphics_pipeline_builder.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/image_barrier.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/shader_loader.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/swapchain.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/vulkan_context.cpp"
 )

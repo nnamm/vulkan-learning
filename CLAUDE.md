@@ -11,8 +11,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 環境変数 `VCPKG_ROOT` が必要（vcpkg のルートパスを指す）。
 
 ```
-cmake --preset default
-cmake --build build
+# デバッグモード
+cmake --preset debug
+cmake --build --preset debug
+
+# リリースモード
+cmake --preset release
+cmake --build --preset release
 ```
 
 ## プロジェクト構造
@@ -31,6 +36,7 @@ cmake --build build
 - メンバー関数: camelCase（`OnInitialize()`）
 - メンバー変数: m_ プレフィックス（`m_vkInstance`）
 - `#pragma once` でヘッダーガード
+- 推移的インクルードは行わず、ヘッダファイルは明示的に指定する
 
 ## Vulkan 固有の注意
 
