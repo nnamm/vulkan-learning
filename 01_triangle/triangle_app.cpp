@@ -170,6 +170,15 @@ void TriangleApp::OnDrawFrame() {
                                 .pColorAttachments = &colorAttachment};
   vkCmdBeginRendering(*commandBuffer, &renderingInfo);
 
+  // 3角形の描画
+  vkCmdBindPipeline(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    m_pipeline);
+  auto vb = m_vertexBuffer->GetVkBuffer();
+  VkDeviceSize offsets[] = {0};
+  vkCmdBindVertexBuffers(*commandBuffer, 0, 1, &vb, offsets);
+
+  vkCmdDraw(*commandBuffer, 3, 1, 0, 0);
+
   vkCmdEndRendering(*commandBuffer);
 
   // 表示用レイアウト変更
