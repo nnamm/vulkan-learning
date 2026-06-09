@@ -1,4 +1,3 @@
-#include <stdexcept>
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -8,11 +7,13 @@
 #elif defined(__linux__)
 #include <linux/limits.h>
 #include <unistd.h>
+
+#include <iostream>
+#include <stdexcept>
 #endif
 
 #include <cstdint>
 #include <filesystem>
-#include <iostream>
 
 #include "core/asset_path.h"
 #define GLFW_INCLUDE_VULKAN
