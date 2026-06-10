@@ -90,5 +90,30 @@ void VertexBuffer::Unmap() {
   vkUnmapMemory(VulkanContext::Get().GetVkDevice(), m_memory);
 }
 
+bool StagingBuffer::Initialize(VkDeviceSize size) {
+  VkBufferCreateInfo bufferInfo{
+      .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+      .size = size,
+      .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+  };
+  VkMemoryPropertyFlags memProps = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+  SetAccessFlags(VK_ACCESS_HOST_WRITE_BIT);
+  return CreateBuffer(bufferInfo, memProps);
+}
+
+void* StagingBuffer::Map() {
+  void* mapped = nullptr;
+  VkDevice device = VulkanContext::Get().GetVkDevice();
+  vkMapMemory(device, m_memory, 0, m_size, 0, &mapped);
+  return mapped;
+}
+
+void StagingBuffer::Unmap() {
+  VkDevice device = VulkanContext::Get().GetVkDevice();
+  vkUnmapMemory(device, m_memory);
+}
+
 // Chapter3時点で必要なコード
 template class BufferResource<VertexBuffer>;
