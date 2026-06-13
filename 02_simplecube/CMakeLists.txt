@@ -12,6 +12,7 @@ target_sources(VkSimpleCube PRIVATE
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/glfw_surface_provider.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/graphics_pipeline_builder.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/image_barrier.cpp"
+  "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/resource_uploader.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/shader_loader.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/swapchain.cpp"
   "${CMAKE_SOURCE_DIR}/lib/${LIB_STAGE}/core/vulkan_context.cpp"
