@@ -21,3 +21,4 @@ lib/stage2/
 .cache/
 _tmp/
 build/
+AGENT.md
