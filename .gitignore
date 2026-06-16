@@ -7,7 +7,6 @@ assets/shaders/meshshader-triangle
 assets/shaders/pathtrace-rayquery
 assets/shaders/raytrace-pipeline
 assets/shaders/raytrace-triangle
-assets/shaders/simplecube
 assets/shaders/simpletexture
 assets/shaders/tessellation
 
