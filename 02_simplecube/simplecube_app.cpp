@@ -81,6 +81,15 @@ void SimpleCubeApp::CreateCubeGeometry() {
     m_resourceUploader.SubmitAndWait();
 }
 
+void SimpleCubeApp::CreateUniformBuffers() {
+    auto& vulkanCtx = VulkanContext::Get();
+    assert(vulkanCtx.MaxInflightFrames == m_uniformBuffers.size());
+
+    for (uint32_t i = 0; i < m_uniformBuffers.size(); ++i) {
+        m_uniformBuffers[i] = UniformBuffer::Create(sizeof(SceneConstants));
+    }
+}
+
 void SimpleCubeApp::CreateDepthBuffer() {
     auto& vulkanCtx = VulkanContext::Get();
     auto& swapchain = vulkanCtx.GetSwapchain();

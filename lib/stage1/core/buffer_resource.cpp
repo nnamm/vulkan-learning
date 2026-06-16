@@ -100,6 +100,19 @@ bool IndexBuffer::Initialize(VkDeviceSize size, VkMemoryPropertyFlags memProps) 
     return CreateBuffer(bufferInfo, memProps);
 }
 
+bool UniformBuffer::Initialize(VkDeviceSize size) {
+    VkBufferCreateInfo bufferInfo{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .size = size,
+        .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+    };
+    VkMemoryPropertyFlags memProps =
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    SetAccessFlags(VK_ACCESS_SHADER_READ_BIT);
+    return CreateBuffer(bufferInfo, memProps);
+}
+
 bool StagingBuffer::Initialize(VkDeviceSize size) {
     VkBufferCreateInfo bufferInfo{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,

@@ -64,7 +64,7 @@ class SimpleCubeApp : public ISampleApp {
     } m_cube{};
     VkDescriptorSetLayout m_descriptorSetLayout = VK_NULL_HANDLE;
 
-    // std::array<std::shared_ptr<UniformBuffer>, 2> m_uniformBuffers;
+    std::array<std::shared_ptr<UniformBuffer>, 2> m_uniformBuffers;
     std::array<VkDescriptorSet, 2> m_descriptorSets;
 
     std::shared_ptr<DepthBuffer> m_depthBuffer;
