@@ -1,6 +1,8 @@
 #include "simplecube_app.h"
 
+#include <cstddef>
 #include <cstdint>
+#include <stdexcept>
 
 #include "core/buffer_resource.h"
 #include "core/vulkan_context.h"
@@ -81,6 +83,26 @@ void SimpleCubeApp::CreateCubeGeometry() {
     m_resourceUploader.SubmitAndWait();
 }
 
+void SimpleCubeApp::CreateDescriptorSetLayout() {
+    VkDescriptorSetLayoutBinding uboLayoutBinding{
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        .pImmutableSamplers = nullptr,
+    };
+    VkDescriptorSetLayoutCreateInfo layoutInfo{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .bindingCount = 1,
+        .pBindings = &uboLayoutBinding,
+    };
+    auto device = VulkanContext::Get().GetVkDevice();
+    if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_descriptorSetLayout) !=
+        VK_SUCCESS) {
+        throw std::runtime_error("failed to create descriptor set layout!");
+    }
+}
+
 void SimpleCubeApp::CreateUniformBuffers() {
     auto& vulkanCtx = VulkanContext::Get();
     assert(vulkanCtx.MaxInflightFrames == m_uniformBuffers.size());
@@ -90,9 +112,51 @@ void SimpleCubeApp::CreateUniformBuffers() {
     }
 }
 
+void SimpleCubeApp::CreateDescriptorSets() {
+    auto& vulkanCtx = VulkanContext::Get();
+    for (uint32_t i = 0; i < m_descriptorSets.size(); ++i) {
+        m_descriptorSets[i] = vulkanCtx.AllocateDescriptorSet(m_descriptorSetLayout);
+
+        VkDescriptorBufferInfo bufferInfo{
+            .buffer = m_uniformBuffers[i]->GetVkBuffer(),
+            .offset = 0,
+            .range = sizeof(SceneConstants),
+        };
+
+        VkWriteDescriptorSet write{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = m_descriptorSets[i],
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = &bufferInfo,
+        };
+        vkUpdateDescriptorSets(vulkanCtx.GetVkDevice(), 1, &write, 0, nullptr);
+    }
+}
+
 void SimpleCubeApp::CreateDepthBuffer() {
     auto& vulkanCtx = VulkanContext::Get();
     auto& swapchain = vulkanCtx.GetSwapchain();
     auto extent = swapchain->GetExtent();
     m_depthBuffer = DepthBuffer::Create(extent, VK_FORMAT_D32_SFLOAT);
+}
+
+void SimpleCubeApp::CreateGraphicsPipeline() {
+    auto& vulkanCtx = VulkanContext::Get();
+    auto& swapchain = vulkanCtx.GetSwapchain();
+    auto device = vulkanCtx.GetVkDevice();
+
+    // パイプラインレイアウトを先に構成する
+    VkPipelineLayoutCreateInfo layoutInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .setLayoutCount = 1,
+        .pSetLayouts = &m_descriptorSetLayout,
+        .pushConstantRangeCount = 0,
+        .pPushConstantRanges = nullptr,
+    };
+    if (vkCreatePipelineLayout(device, &layoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create pipeline layout!");
+    }
 }
