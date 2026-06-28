@@ -1,5 +1,9 @@
-# 実行ファイル（WinMainを使用）
-add_executable(VkTriangle WIN32)
+# 実行ファイル
+add_executable(VkTriangle)
+
+if(WIN32)
+  set_target_properties(VkTriangle PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
 
 # 実行ファイルを作成するためのソースファイル
 target_sources(VkTriangle PRIVATE

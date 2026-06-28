@@ -1,5 +1,9 @@
-# 実行ファイル（WinMainを使用）
-add_executable(VkSimpleCube WIN32)
+# 実行ファイル
+add_executable(VkSimpleCube)
+
+if(WIN32)
+  set_target_properties(VkSimpleCube PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
 
 # 実行ファイルを作成するためのソースファイル
 target_sources(VkSimpleCube PRIVATE
