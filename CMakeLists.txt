@@ -21,3 +21,4 @@ set(LIB_STAGE "stage1")
 
 # 章ごとのディレクトリ
 add_subdirectory(01_triangle)
+add_subdirectory(02_simplecube)

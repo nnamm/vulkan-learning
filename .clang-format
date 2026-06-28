@@ -1,7 +1,7 @@
 BasedOnStyle: Google
-AccessModifierOffset: -1
-AllowShortIfStatementsOnASingleLine: true
+AccessModifierOffset: -2
+AllowShortIfStatementsOnASingleLine: Never
 BreakBeforeBraces: Attach
-ColumnLimit: 80
+ColumnLimit: 100
 DerivePointerAlignment: true
-IndentWidth: 2
+IndentWidth: 4
