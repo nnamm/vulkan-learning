@@ -38,8 +38,8 @@ class SimpleCubeApp : public ISampleApp {
         glm::mat4 mtxWorld;
         glm::mat4 mtxView;
         glm::mat4 mtxProj;
-        glm::mat4 lightDir;
-        glm::mat4 eyePosition;
+        glm::vec4 lightDir;
+        glm::vec4 eyePosition;
     };
 
   private:
