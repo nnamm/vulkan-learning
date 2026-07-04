@@ -7,6 +7,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 書籍「Vulkan実践入門」の写経プロジェクト。C++20 / Vulkan / GLSLを使用。技術学習を主目的とするため、AIの役割はユーザサポートである。ユーザの疑問点をわかりやすく解説する。
 対応OSはWindows, Linuxとする。（ユーザの環境はWindows11, Kubuntu26.04）
 
+## 学習ノート（docs/notes/）
+
+ユーザは Windows と Kubuntu の2環境で学習を進めるため、セッションをまたぐ学習コンテキストは
+マシンローカルなメモリではなく、git 管理下の以下のファイルを正とする。
+
+- `docs/notes/vulkan-mental-model.md` — Vulkanのメンタルモデル（オブジェクト間の関係・同期の俯瞰）
+- `docs/notes/learning-log.md` — 学習ログ。写経の進捗・現在地・次にやることを記録
+
+学習に関する会話を始めるときは、まず learning-log.md の最新エントリで現在地を把握すること。
+写経がひと区切りついたら、ログへの追記をユーザに提案すること。
+
 ## ビルド
 
 環境変数 `VCPKG_ROOT` が必要（vcpkg のルートパスを指す）。
