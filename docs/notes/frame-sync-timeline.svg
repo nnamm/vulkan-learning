@@ -1,0 +1,58 @@
+<svg width="680" height="440" viewBox="0 0 680 440" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK JP, sans-serif">
+<defs>
+<marker id="aGray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="aPink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#D4537E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="aAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#EF9F27" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<rect x="0" y="0" width="680" height="440" fill="#FFFFFF"/>
+
+<text x="640" y="60" text-anchor="end" font-size="12" fill="#73726c">時間 →</text>
+<text x="40" y="70" font-size="14" font-weight="500" fill="#3d3d3a">CPU（アプリ）</text>
+
+<rect x="40" y="88" width="104" height="44" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.75"/>
+<rect x="158" y="88" width="96" height="44" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.75"/>
+<rect x="268" y="88" width="124" height="44" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.75"/>
+<rect x="406" y="88" width="96" height="44" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.75"/>
+<rect x="516" y="88" width="124" height="44" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.75"/>
+<text x="92" y="110" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3C3489">① Fence待ち</text>
+<text x="206" y="110" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3C3489">② Acquire</text>
+<text x="330" y="110" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3C3489">③ コマンド記録</text>
+<text x="454" y="110" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3C3489">④ Submit</text>
+<text x="578" y="110" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3C3489">⑤ Present発行</text>
+<line x1="146" y1="110" x2="154" y2="110" stroke="#73726c" stroke-width="1.5" marker-end="url(#aGray)"/>
+<line x1="256" y1="110" x2="264" y2="110" stroke="#73726c" stroke-width="1.5" marker-end="url(#aGray)"/>
+<line x1="394" y1="110" x2="402" y2="110" stroke="#73726c" stroke-width="1.5" marker-end="url(#aGray)"/>
+<line x1="504" y1="110" x2="512" y2="110" stroke="#73726c" stroke-width="1.5" marker-end="url(#aGray)"/>
+
+<path d="M430 208 L430 160 L92 160 L92 138" fill="none" stroke="#D4537E" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#aPink)"/>
+<circle cx="240" cy="160" r="8" fill="#FBEAF0" stroke="#993556" stroke-width="0.75"/>
+<text x="240" y="184" text-anchor="middle" font-size="12" fill="#993556">inflightFence（2フレーム後に解放）</text>
+
+<line x1="454" y1="134" x2="454" y2="204" stroke="#73726c" stroke-width="1.5" marker-end="url(#aGray)"/>
+<text x="462" y="176" font-size="12" fill="#73726c">コマンドバッファ投入</text>
+<line x1="630" y1="134" x2="630" y2="324" stroke="#73726c" stroke-width="1.5" marker-end="url(#aGray)"/>
+
+<text x="40" y="200" font-size="14" font-weight="500" fill="#3d3d3a">GPU（グラフィックスキュー）</text>
+<rect x="420" y="208" width="190" height="46" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/>
+<text x="515" y="226" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="500" fill="#085041">描画コマンド実行</text>
+<text x="515" y="244" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0F6E56">wait → draw → signal</text>
+
+<path d="M180 328 L180 288 L436 288 L436 258" fill="none" stroke="#EF9F27" stroke-width="1.5" marker-end="url(#aAmber)"/>
+<circle cx="310" cy="288" r="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.75"/>
+<text x="310" y="272" text-anchor="middle" font-size="12" fill="#854F0B">presentComplete</text>
+
+<path d="M580 254 L580 322" fill="none" stroke="#EF9F27" stroke-width="1.5" marker-end="url(#aAmber)"/>
+<circle cx="580" cy="288" r="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.75"/>
+<text x="566" y="292" text-anchor="end" font-size="12" fill="#854F0B">renderComplete</text>
+
+<text x="40" y="310" font-size="14" font-weight="500" fill="#3d3d3a">表示エンジン</text>
+<rect x="40" y="328" width="185" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.75"/>
+<text x="132" y="350" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#444441">前フレームを表示中</text>
+<rect x="520" y="328" width="120" height="44" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.75"/>
+<text x="580" y="350" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#712B13">次の画像を表示</text>
+
+<circle cx="46" cy="404" r="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.75"/>
+<text x="58" y="408" font-size="12" fill="#73726c">セマフォ：GPUと表示エンジンの間の順序付け</text>
+<circle cx="356" cy="404" r="6" fill="#FBEAF0" stroke="#993556" stroke-width="0.75"/>
+<text x="368" y="408" font-size="12" fill="#73726c">Fence：GPU→CPUの完了通知</text>
+</svg>
