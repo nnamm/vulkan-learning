@@ -8,3 +8,5 @@ The project started out on Windows, and gained a full Linux setup after I adopte
 - **Linux (Kubuntu 26.04)** — [Neovim](https://neovim.io/) + [LazyVim](https://www.lazyvim.org/) + CMake, built with g++ and Ninja.
 
 Throughout this project, I am studying modern development practices with CMake, using the provided Visual Studio 2026 sample programs as a reference for best practices.
+
+SAMPLE repository: [Vulkan Practical Guide Samples](https://github.com/techmadot/vulkan-practical-guide-samples)
