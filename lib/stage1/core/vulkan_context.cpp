@@ -255,6 +255,9 @@ void VulkanContext::CreateLogicalDevice() {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
+    // 上下方向を合わせるために有効とする
+    deviceExtensions.push_back(VK_KHR_MAINTENANCE1_EXTENSION_NAME);
+
     // 論理デバイスの作成
     float priority = 1.0f;
     VkDeviceQueueCreateInfo queueInfo{};
@@ -409,4 +412,8 @@ VkDescriptorSet VulkanContext::AllocateDescriptorSet(VkDescriptorSetLayout layou
     }
 
     return descriptorSet;
+}
+
+void VulkanContext::FreeDescriptorSet(VkDescriptorSet descriptorSet) {
+    vkFreeDescriptorSets(m_vkDevice, m_descriptorPool, 1, &descriptorSet);
 }

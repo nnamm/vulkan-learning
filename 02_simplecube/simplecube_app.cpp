@@ -1,11 +1,20 @@
 #include "simplecube_app.h"
 
+#include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
+#include <thread>
 
+#include "core/asset_path.h"
 #include "core/buffer_resource.h"
+#include "core/graphics_pipeline_builder.h"
+#include "core/image_barrier.h"
+#include "core/shader_loader.h"
+#include "core/swapchain.h"
 #include "core/vulkan_context.h"
+#include "glm/ext.hpp"
 
 void SimpleCubeApp::OnInitialize() {
     m_resourceUploader.Initialize();
@@ -18,6 +27,40 @@ void SimpleCubeApp::OnInitialize() {
     CreateDescriptorSets();
 
     CreateGraphicsPipeline();
+}
+
+void SimpleCubeApp::OnCleanup() {
+    auto& vulkanCtx = VulkanContext::Get();
+    auto device = vulkanCtx.GetVkDevice();
+
+    // GPU状態がアイドルになるのを待ってから後始末を開始
+    vkDeviceWaitIdle(device);
+
+    // パイプラインは気
+    vkDestroyPipeline(device, m_pipeline, nullptr);
+
+    // Cubeジオメトリの破棄
+    m_cube.vertexBuffer.reset();
+    m_cube.indexBuffer.reset();
+
+    // ディスクリプタ破棄
+    for (auto& ds : m_descriptorSets) {
+        vulkanCtx.FreeDescriptorSet(ds);
+    }
+
+    // Uniformバッファ破棄
+    for (auto& ubo : m_uniformBuffers) {
+        ubo->Cleanup();
+    }
+
+    // デプスバッファ破棄
+    m_depthBuffer->Cleanup();
+    m_depthBuffer.reset();
+
+    vkDestroyDescriptorSetLayout(device, m_descriptorSetLayout, nullptr);
+    vkDestroyPipelineLayout(device, m_pipelineLayout, nullptr);
+
+    m_resourceUploader.Cleanup();
 }
 
 void SimpleCubeApp::CreateCubeGeometry() {
@@ -159,4 +202,187 @@ void SimpleCubeApp::CreateGraphicsPipeline() {
     if (vkCreatePipelineLayout(device, &layoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
     }
+
+    VkShaderModule vertShaderModule =
+        loader::LoadShaderModule(GetAssetPath(AssetType::Shader, "simplecube/cube.vert.spv"));
+    VkShaderModule fragShaderModule =
+        loader::LoadShaderModule(GetAssetPath(AssetType::Shader, "simplecube/cube.frag.spv"));
+
+    VkPipelineShaderStageCreateInfo shaderStages[] = {
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = VK_SHADER_STAGE_VERTEX_BIT,
+            .module = vertShaderModule,
+            .pName = "main",
+        },
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .module = fragShaderModule,
+            .pName = "main",
+        },
+    };
+    // バインディング情報（1つの調停バッファバインディング）
+    VkVertexInputBindingDescription bindingDescription{
+        .binding = 0,
+        .stride = sizeof(Vertex),
+        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+    };
+
+    // 属性情報（location 0: position, location 1: normal, location 2: color）
+    std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{
+        VkVertexInputAttributeDescription{
+            .location = 0,
+            .binding = 0,
+            .format = VK_FORMAT_R32G32B32_SFLOAT,
+            .offset = offsetof(Vertex, position),
+        },
+        VkVertexInputAttributeDescription{
+            .location = 1,
+            .binding = 0,
+            .format = VK_FORMAT_R32G32B32_SFLOAT,
+            .offset = offsetof(Vertex, normal),
+        },
+        VkVertexInputAttributeDescription{
+            .location = 2,
+            .binding = 0,
+            .format = VK_FORMAT_R32G32B32_SFLOAT,
+            .offset = offsetof(Vertex, color),
+        },
+    };
+
+    GraphicsPipelineBuilder builder{};
+    builder.AddShaderStage(VK_SHADER_STAGE_VERTEX_BIT, vertShaderModule);
+    builder.AddShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragShaderModule);
+    builder.SetVertexInput(&bindingDescription, 1, attributeDescriptions.data(),
+                           uint32_t(attributeDescriptions.size()));
+    auto swapchainExtent = swapchain->GetExtent();
+    builder.SetViewport(swapchainExtent);
+    builder.SetPipelineLayout(m_pipelineLayout);
+
+    // デプスバッファに向けた設定
+    VkPipelineDepthStencilStateCreateInfo depthStencilState{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+        .depthTestEnable = VK_TRUE,
+        .depthWriteEnable = VK_TRUE,
+        .depthCompareOp = VK_COMPARE_OP_LESS,
+    };
+    builder.SetDepthStencilState(depthStencilState);
+
+    // 背面をカリングする設定
+    VkPipelineRasterizationStateCreateInfo rasterizerState{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+        .depthClampEnable = VK_FALSE,
+        .rasterizerDiscardEnable = VK_FALSE,
+        .polygonMode = VK_POLYGON_MODE_FILL,
+        .cullMode = VK_CULL_MODE_BACK_BIT,
+        .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+        .depthBiasEnable = VK_FALSE,
+        .lineWidth = 1.0f,
+    };
+    builder.SetRasterizationState(rasterizerState);
+
+    auto colorFormat = swapchain->GetFormat().format;
+    auto depthFormat = m_depthBuffer->GetFormat();
+    builder.UseDynamicRendering(colorFormat, depthFormat);
+
+    m_pipeline = builder.Build();
+
+    vkDestroyShaderModule(device, vertShaderModule, nullptr);
+    vkDestroyShaderModule(device, fragShaderModule, nullptr);
+}  // CreateGraphicsPipeline
+
+void SimpleCubeApp::OnDrawFrame() {
+    auto& vulkanCtx = VulkanContext::Get();
+    auto& swapchain = vulkanCtx.GetSwapchain();
+    auto device = vulkanCtx.GetVkDevice();
+    auto extent = swapchain->GetExtent();
+
+    if (vulkanCtx.AcquireNextImage() != VK_SUCCESS) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        return;
+    }
+
+    auto frameIndex = vulkanCtx.GetCurrentFrameIndex();
+    auto* frameCtx = vulkanCtx.GetCurrentFrameContext();
+
+    // SceneConstants を更新する
+    SceneConstants sceneConstants{};
+    auto& ubo = m_uniformBuffers[frameIndex];
+
+    auto eyePos = glm::vec3(2, 1, 4);
+    sceneConstants.mtxWorld = glm::mat4(1.0f);
+    sceneConstants.mtxView = glm::lookAt(eyePos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    sceneConstants.mtxProj = glm::perspectiveFov(glm::radians(45.0f), float(extent.width),
+                                                 float(extent.height), 0.1f, 100.0f);
+    sceneConstants.lightDir = glm::normalize(glm::vec4(0.5, 2, 1, 0));
+    sceneConstants.eyePosition = glm::vec4(eyePos, 0);
+
+    if (void* p = ubo->Map(); p != nullptr) {
+        memcpy(p, &sceneConstants, sizeof(sceneConstants));
+        ubo->Unmap();
+    }
+
+    auto& commandBuffer = frameCtx->commandBuffer;
+    commandBuffer->Begin();
+
+    // 描画前：UNDEFINED → COLOR_ATTACHMENT_OPTIMAL
+    // VK_ATTACHMENT_LOAD_OP_CLEARを指定のため、常にUNDEFINED指定遷移で問題なし
+    VkImageSubresourceRange range{
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+    };
+    commandBuffer->TransitionLayout(swapchain->GetCurrentImage(), range,
+                                    ImageLayoutTransition::FromUndefinedToColorAttachment());
+
+    // Color
+    VkRenderingAttachmentInfo colorAttachment{
+        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+        .imageView = swapchain->GetCurrentView(),
+        .imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .clearValue = VkClearValue{.color = {{0.2f, 0.1f, 0.1f, 0.0f}}},
+    };
+    // Depth
+    VkRenderingAttachmentInfo depthAttachment{
+        .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+        .imageView = m_depthBuffer->GetVkImageView(),
+        .imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .clearValue = {.depthStencil = {1.0f, 0}},
+    };
+    VkRenderingInfo renderingInfo{
+        .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
+        .renderArea = {{0, 0}, extent},
+        .layerCount = 1,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &colorAttachment,
+        .pDepthAttachment = &depthAttachment,
+    };
+    vkCmdBeginRendering(*commandBuffer, &renderingInfo);
+
+    // バインドと描画
+    vkCmdBindPipeline(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+
+    auto vb = m_cube.vertexBuffer->GetVkBuffer();
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(*commandBuffer, 0, 1, &vb, offsets);
+    vkCmdBindIndexBuffer(*commandBuffer, m_cube.indexBuffer->GetVkBuffer(), 0,
+                         VK_INDEX_TYPE_UINT32);
+
+    vkCmdBindDescriptorSets(*commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
+                            &m_descriptorSets[frameIndex], 0, nullptr);
+    vkCmdDrawIndexed(*commandBuffer, m_cube.indexCount, 1, 0, 0, 0);
+
+    vkCmdEndRendering(*commandBuffer);  // 描画の完了
+
+    commandBuffer->TransitionLayout(swapchain->GetCurrentImage(), range,
+                                    ImageLayoutTransition::FromColorToPresent());
+    commandBuffer->End();
+    vulkanCtx.SubmitPresent();
 }

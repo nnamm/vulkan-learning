@@ -1,26 +1,14 @@
 #pragma once
+#include <vulkan/vulkan.h>
+
 #include <array>
 #include <cstdint>
 #include <memory>
-#include <stdexcept>
-#include <string>
-#include <vector>
 
 #include "common/sample_app.h"
-
-// GLMで設定する値単位をラジアンに
-// #define GLM_FORCE_RADIANS
-// Vulkan ではClip空間 Z:[0,1]のため定義が必要
-// #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-
-#include "core/asset_path.h"
 #include "core/buffer_resource.h"
 #include "core/image_resource.h"
 #include "core/resource_uploader.h"
-#include "core/shader_loader.h"
-#include "core/swapchain.h"
-#include "core/vulkan_context.h"
-#include "glm/ext.hpp"
 #include "glm/glm.hpp"
 
 class SimpleCubeApp : public ISampleApp {
