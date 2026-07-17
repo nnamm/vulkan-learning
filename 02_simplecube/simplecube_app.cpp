@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <glm/ext/scalar_constants.hpp>
 #include <stdexcept>
 #include <thread>
 
@@ -20,7 +21,11 @@ void SimpleCubeApp::OnInitialize() {
     m_resourceUploader.Initialize();
 
     CreateDepthBuffer();
+#if 01
     CreateCubeGeometry();
+#else
+    CreateSphereGeometry();
+#endif
     CreateDescriptorSetLayout();
 
     CreateUniformBuffers();
@@ -117,6 +122,61 @@ void SimpleCubeApp::CreateCubeGeometry() {
 
     m_resourceUploader.UploadBuffer(m_cube.vertexBuffer.get(), vertices.data(), bufferSize,
                                     VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+    bufferSize = sizeof(uint32_t) * indices.size();
+    m_cube.indexBuffer = IndexBuffer::Create(bufferSize, memProps);
+    m_resourceUploader.UploadBuffer(m_cube.indexBuffer.get(), indices.data(), bufferSize,
+                                    VK_ACCESS_INDEX_READ_BIT);
+    m_cube.indexCount = indices.size();
+
+    m_resourceUploader.SubmitAndWait();
+}
+
+void SimpleCubeApp::CreateSphereGeometry() {
+    const int stackCount = 32;
+    const int sliceCount = 48;
+    constexpr auto PI = glm::pi<float>();
+    const auto sliceStep = PI * 2.0f / sliceCount;
+    const auto stackStep = PI / stackCount;
+
+    std::vector<Vertex> vertices;
+    for (int stack = 0; stack <= stackCount; ++stack) {
+        auto stackAngle = (float)PI / 2 - stack * stackStep;
+
+        for (int slice = 0; slice <= sliceCount; ++slice) {
+            auto sliceAngle = slice * sliceStep;
+
+            auto x = std::cosf(stackAngle) * std::cosf(sliceAngle);
+            auto y = std::sinf(stackAngle);
+            auto z = std::cosf(stackAngle) * std::sinf(sliceAngle);
+
+            Vertex v;
+            v.position = glm::vec3(x, y, z);
+            v.normal = normalize(v.position);
+            v.color = glm::vec3(0.7f, 0.85f, 0.9f);
+            vertices.push_back(v);
+        }
+    }
+    std::vector<uint32_t> indices;
+    for (int stack = 0; stack < stackCount; ++stack) {
+        uint32_t k1 = stack * (sliceCount + 1);
+        uint32_t k2 = k1 + sliceCount + 1;
+
+        for (int slice = 0; slice < sliceCount; ++slice, ++k1, ++k2) {
+            if (stack != 0) {
+                indices.insert(indices.end(), {k1, k1 + 1, k2});
+            }
+            if (stack != (stackCount - 1)) {
+                indices.insert(indices.end(), {k1 + 1, k2 + 1, k2});
+            }
+        }
+    }
+    VkDeviceSize bufferSize;
+    VkMemoryPropertyFlags memProps = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    bufferSize = sizeof(Vertex) * vertices.size();
+    m_cube.vertexBuffer = VertexBuffer::Create(bufferSize, memProps);
+    m_resourceUploader.UploadBuffer(m_cube.vertexBuffer.get(), vertices.data(), bufferSize,
+                                    VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT);
+
     bufferSize = sizeof(uint32_t) * indices.size();
     m_cube.indexBuffer = IndexBuffer::Create(bufferSize, memProps);
     m_resourceUploader.UploadBuffer(m_cube.indexBuffer.get(), indices.data(), bufferSize,

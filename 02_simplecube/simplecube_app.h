@@ -32,7 +32,7 @@ class SimpleCubeApp : public ISampleApp {
 
   private:
     void CreateCubeGeometry();
-    void CreateSphereGeomety();
+    void CreateSphereGeometry();
     void CreateDescriptorSetLayout();
     void CreateUniformBuffers();
     void CreateDescriptorSets();

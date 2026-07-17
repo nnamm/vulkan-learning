@@ -100,6 +100,22 @@ bool IndexBuffer::Initialize(VkDeviceSize size, VkMemoryPropertyFlags memProps) 
     return CreateBuffer(bufferInfo, memProps);
 }
 
+void* IndexBuffer::Map() {
+    if (!(m_memProps & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))
+        return nullptr;
+
+    void* mapped = nullptr;
+    vkMapMemory(VulkanContext::Get().GetVkDevice(), m_memory, 0, m_size, 0, &mapped);
+    return mapped;
+}
+
+void IndexBuffer::Unmap() {
+    if (!(m_memProps & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT))
+        return;
+
+    vkUnmapMemory(VulkanContext::Get().GetVkDevice(), m_memory);
+}
+
 bool UniformBuffer::Initialize(VkDeviceSize size) {
     VkBufferCreateInfo bufferInfo{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -112,6 +128,14 @@ bool UniformBuffer::Initialize(VkDeviceSize size) {
     SetAccessFlags(VK_ACCESS_SHADER_READ_BIT);
     return CreateBuffer(bufferInfo, memProps);
 }
+
+void* UniformBuffer::Map() {
+    void* mapped = nullptr;
+    vkMapMemory(VulkanContext::Get().GetVkDevice(), m_memory, 0, m_size, 0, &mapped);
+    return mapped;
+}
+
+void UniformBuffer::Unmap() { vkUnmapMemory(VulkanContext::Get().GetVkDevice(), m_memory); }
 
 bool StagingBuffer::Initialize(VkDeviceSize size) {
     VkBufferCreateInfo bufferInfo{
@@ -139,4 +163,4 @@ void StagingBuffer::Unmap() {
 }
 
 // Chapter3時点で必要なコード
-template class BufferResource<VertexBuffer>;
+// template class BufferResource<VertexBuffer>;
