@@ -126,6 +126,65 @@ CPU軸とGPU軸の2本タイムライン。Fence = CPUが横切る縦線、Semap
 
 ---
 
+## §3.5 答え合わせ用：1フレームの時系列（2026-07-11 AIセッションで整理）
+
+> ⚠️ これは §3 の宿題（手描きタイムライン）の**答え合わせ用リファレンス**。
+> 記憶に定着させるのが目的なので、**先に紙に自分で描いてから**ここを読むこと。
+
+### 登場人物は3人
+
+CPU（アプリ）・GPU（グラフィックスキュー）・表示エンジン（モニタに出す機構）。
+3人は勝手に並走するので、セマフォとFenceで「追い越し禁止」の約束を結ぶ。
+
+### `OnDrawFrame` の5ステップと呼び出し対応
+
+| # | ステップ | 実際の呼び出し | 場所 |
+|---|---------|--------------|------|
+| ① | Fence待ち | `vkWaitForFences` | `vulkan_context.cpp` AcquireNextImage 冒頭 |
+| ② | Acquire | `vkAcquireNextImageKHR` → 成功時 `vkResetFences` | `swapchain.cpp` AcquireNextImage |
+| ③ | コマンド記録 | バリア→クリア→`vkCmdDraw(3,...)`→バリア | `triangle_app.cpp` OnDrawFrame |
+| ④ | Submit | `vkQueueSubmit`（wait/signal/fence を添える） | `vulkan_context.cpp` SubmitPresent |
+| ⑤ | Present発行 | `vkQueuePresentKHR` → `AdvanceFrame` | `swapchain.cpp` QueuePresent |
+
+①が**CPUが唯一ブロックする場所**。②は「次に描いていい画像の番号」が即返るが、
+画像自体はまだ表示中かもしれない（だからセマフォが要る）。③はCPU側の録画だけで
+GPUはまだ何もしていない。④⑤はどちらも投げっぱなしでCPUは待たない。
+
+### タイムライン（宿題で描くべき絵）
+
+![1フレームの流れとセマフォ・Fenceの作用点](./frame-sync-timeline.png)
+
+### 3つの同期オブジェクトの向き
+
+| 同期オブジェクト | signalする側 | 待つ側 | 守っているもの |
+|---|---|---|---|
+| `presentComplete` セマフォ | 表示エンジン | GPU（色書き込み段） | 表示中の画像への上書き |
+| `renderComplete` セマフォ | GPU（描画完了時） | 表示エンジン | 描きかけ画像の表示 |
+| `inflightFence` | GPU（submit完了時） | CPU（2フレーム後の①） | コマンドバッファの再記録 |
+
+セマフォ2つは**向きが逆の関門**。`presentComplete` は「表示エンジン→GPU」（まだ表示中の
+画像に描くな）、`renderComplete` は「GPU→表示エンジン」（描き終わってない画像を表示するな）。
+どちらもCPUは関与しない。
+
+### なぜFenceは「2フレーム後」か（並走の絵）
+
+`MaxInflightFrames = 2` なので FrameContext（CommandBuffer + Fence）は2セットを交互再利用。
+フレーム2はフレーム0と同じセットを使うため、fence[0] のsignalを待ってから始まる。
+逆に言えば **GPUが1フレーム遅れていてもCPUは止まらず先の準備を進められる**のが狙い。
+
+![2フレーム並走とFenceの待ち合わせ](./inflight-frames-fence.png)
+
+### 細部の補足（2周目で効いてくる）
+
+- **`pWaitDstStageMask = COLOR_ATTACHMENT_OUTPUT`**: GPUはセマフォを待つ間も
+  頂点シェーダーなど「色を書く前の仕事」は先に始められる。待ちが効くのは色を書く瞬間だけ。
+- **`presentComplete` はプール方式**（`swapchain.cpp` CreateFrameContext / AcquireNextImage）:
+  acquire は「どの画像が返るか分からない状態でセマフォを先に渡す」必要があるため、
+  画像数+1個をローテーションし、acquire 成功後にその画像へ紐付け直す。
+- 初期SIGNALEDの理由は §3「落とし穴2つ」参照。
+
+---
+
 ## §4. これらを支えるC++の考え方
 
 要は「`Vk*` ハンドルという生資源を、C++のRAIIでどう飼い慣らすか」。
@@ -177,5 +236,5 @@ Vulkanの難しさは個々のAPIでなく**オブジェクト間の関係と時
 4. `gpu_resource_base.h` → `buffer_resource.h` — リソース設計のイディオム
 
 ### 次回の宿題（未完）
-- [ ] §3 の CPU/GPU 2本タイムライン図を、`AcquireNextImage`→`SubmitPresent` の実際の呼び出しに対応づけて描く
+- [ ] §3 の CPU/GPU 2本タイムライン図を、`AcquireNextImage`→`SubmitPresent` の実際の呼び出しに対応づけて描く（紙に描いた後の答え合わせ → §3.5）
 - [ ] §4 の「Fence/Semaphore を自分でRAIIラッパー化するなら?」を考える

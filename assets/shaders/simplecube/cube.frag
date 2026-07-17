@@ -28,7 +28,7 @@ void main() {
     // specular
     if (dotNL > 0) {
         const vec3 Ks = vec3(1.0);  // 鏡面反射係数
-        vec3 toEyeDir = normalize(eyePosition.xyz = inWorldPosition.xyz);
+        vec3 toEyeDir = normalize(eyePosition.xyz - inWorldPosition.xyz);
         vec3 R = normalize(reflect(-toLightDir, N));
         const float shiniess = 50;
         light += lightColor * Ks * pow(max(dot(toEyeDir, R), 0), shiniess);

@@ -6,6 +6,22 @@
 #include "core/buffer_resource.h"
 #include "core/vulkan_context.h"
 
+bool ResourceUploader::Initialize() {
+    VkDevice device = VulkanContext::Get().GetVkDevice();
+
+    // フェンスの作成（1回限りで使いまわし）
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    auto result = vkCreateFence(device, &fenceInfo, nullptr, &m_transferFence);
+    return result == VK_SUCCESS;
+}
+
+void ResourceUploader::Cleanup() {
+    VkDevice device = VulkanContext::Get().GetVkDevice();
+    vkDestroyFence(device, m_transferFence, nullptr);
+    m_transferFence = VK_NULL_HANDLE;
+}
+
 bool ResourceUploader::UploadBuffer(IBufferResource* target, const void* pData, size_t size,
                                     VkAccessFlags nextAccessMask) {
     VulkanContext& context = VulkanContext::Get();

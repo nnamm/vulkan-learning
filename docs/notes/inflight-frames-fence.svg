@@ -1,0 +1,32 @@
+<svg width="680" height="290" viewBox="0 0 680 290" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans CJK JP, sans-serif">
+<defs>
+<marker id="aPink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#D4537E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<rect x="0" y="0" width="680" height="290" fill="#FFFFFF"/>
+
+<text x="640" y="40" text-anchor="end" font-size="12" fill="#73726c">時間 →</text>
+<text x="40" y="66" font-size="14" font-weight="500" fill="#3d3d3a">CPU：フレーム準備</text>
+<rect x="60" y="80" width="110" height="40" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.75"/>
+<text x="115" y="100" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3C3489">フレーム0</text>
+<rect x="180" y="80" width="110" height="40" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/>
+<text x="235" y="100" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#085041">フレーム1</text>
+<rect x="300" y="80" width="60" height="40" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.75"/>
+<text x="330" y="100" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#444441">待ち</text>
+<rect x="364" y="80" width="110" height="40" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.75"/>
+<text x="419" y="100" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#712B13">フレーム2</text>
+<text x="490" y="100" dominant-baseline="central" font-size="12" fill="#73726c">…</text>
+
+<text x="40" y="158" font-size="14" font-weight="500" fill="#3d3d3a">GPU：描画実行</text>
+<rect x="180" y="170" width="130" height="40" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.75"/>
+<text x="245" y="190" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3C3489">フレーム0を実行</text>
+<rect x="320" y="170" width="130" height="40" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/>
+<text x="385" y="190" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#085041">フレーム1を実行</text>
+<rect x="460" y="170" width="130" height="40" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.75"/>
+<text x="525" y="190" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#712B13">フレーム2を実行</text>
+
+<path d="M305 170 L330 124" fill="none" stroke="#D4537E" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#aPink)"/>
+<text x="338" y="152" font-size="12" fill="#993556">fence[0] が signal</text>
+
+<text x="340" y="246" text-anchor="middle" font-size="12" fill="#73726c">FrameContext（CommandBuffer＋Fence）は2セットを交互に再利用する</text>
+<text x="340" y="266" text-anchor="middle" font-size="12" fill="#73726c">フレーム2はフレーム0と同じセットを使うため、fence[0] を待ってから始まる</text>
+</svg>
