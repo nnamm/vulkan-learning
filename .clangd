@@ -1,2 +1,10 @@
 CompileFlags:
   CompilationDatabase: build/debug
+
+# glm の公開ヘッダ（glm.hpp / ext.hpp / vec3.hpp 等）はいずれも下位ヘッダを
+# 束ねるラッパーで、include-cleaner が型の提供元を最深ヘッダと判定するため
+# 「not used directly」の誤検知が出る。glm 配下は解析対象から除外する。
+Diagnostics:
+  Includes:
+    IgnoreHeader:
+      - "glm/.*"
