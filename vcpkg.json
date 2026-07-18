@@ -7,7 +7,7 @@
     "assimp",
     "stb"
   ],
-  "builtin-baseline": "10ceb139a610ebf3c6aa49cdc4a4b7f3db5d3f2b",
+  "builtin-baseline": "4eb0f7cabb9ca18132d80009312411b9261bba7b",
   "overrides": [
     {
       "name": "glfw3",
