@@ -20,3 +20,4 @@ lib/stage2/
 .cache/
 _tmp/
 build/
+*.bk
