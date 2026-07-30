@@ -22,11 +22,11 @@ include した `.cpp` でも `std::cos` が使える。**書いていないの�
 
 `-H` を付けると、**開いたヘッダを入れ子構造で stderr に出力**する。
 
-```
+```sh
 g++ -std=c++20 -H -fsyntax-only demo.cpp
 ```
 
-```
+```sh
 . /usr/include/c++/15/vector
 .. /usr/include/c++/15/bits/requires_hosted.h
 ... /usr/include/x86_64-linux-gnu/c++/15/bits/c++config.h
@@ -43,12 +43,12 @@ g++ -std=c++20 -H -fsyntax-only demo.cpp
 
 補助オプション:
 
-| オプション | 意味 |
-| --- | --- |
+| オプション      | 意味                                                                       |
+| --------------- | -------------------------------------------------------------------------- |
 | `-fsyntax-only` | 構文解析だけして `.o` を作らない。調査時はこれを付けると速い＆ゴミが出ない |
-| `-M` | インクルードした全ヘッダを**フラットな一覧**で出す（system header 含む） |
-| `-MM` | 同じだが **system header を除く**。「プロジェクト内の依存」だけ見たいとき |
-| `-E` | プリプロセス結果そのものを出す。マクロ展開まで追いたい最終手段 |
+| `-M`            | インクルードした全ヘッダを**フラットな一覧**で出す（system header 含む）   |
+| `-MM`           | 同じだが **system header を除く**。「プロジェクト内の依存」だけ見たいとき  |
+| `-E`            | プリプロセス結果そのものを出す。マクロ展開まで追いたい最終手段             |
 
 `-H` は木構造（誰が誰を呼んだか）、`-M`/`-MM` は一覧（何が入ったか）。
 **「なぜ入ったのか」を知りたいときは `-H`。**
@@ -63,7 +63,7 @@ Clang も `-H` が同じ形式で使える。`--trace-includes` は `-H` の別�
 自分でオプションを組み立て直すと `-I` の抜けで結果が変わる。CMake が出力する
 `compile_commands.json` から**実物**を取り出すのが確実。
 
-```fish
+```sh
 python3 -c "
 import json
 for e in json.load(open('build/debug/compile_commands.json')):
@@ -74,7 +74,7 @@ for e in json.load(open('build/debug/compile_commands.json')):
 
 ### Step 2. `-H -fsyntax-only` を足して実行し、出力を保存
 
-```fish
+```sh
 # 取り出したコマンドに -H -fsyntax-only を追加し、-o と -c は外す
 cd build/debug
 /usr/bin/c++ -DGLM_FORCE_DEPTH_ZERO_TO_ONE -DGLM_FORCE_RADIANS \
@@ -86,19 +86,19 @@ cd build/debug
 
 ### Step 3. 目的のヘッダを探し、親チェーンを復元する
 
-```fish
+```sh
 grep -n cmath inc.txt
 ```
 
 親を自動で辿るなら awk（`cmath` の部分を調べたいヘッダ名に変える）:
 
-```fish
+```sh
 awk '/^\.+ / { d = index($0, " ") - 1; stack[d] = $2; if ($2 ~ /cmath$/) { for (i = 1; i <= d; i++) print i ": " stack[i]; exit } }' inc.txt
 ```
 
 出力（2026-07-30 に実際に得られた結果）:
 
-```
+```sh
 1: 02_simplecube/simplecube_app.h
 2: vcpkg_installed/x64-linux/include/glm/glm.hpp
 3: vcpkg_installed/x64-linux/include/glm/detail/_fixes.hpp
@@ -129,14 +129,14 @@ awk '/^\.+ / { d = index($0, " ") - 1; stack[d] = $2; if ($2 ~ /cmath$/) { for (
 
 ### 導入したもの
 
-```
+```sh
 sudo apt install clang-tidy clangd
 ```
 
 `clang-tools-21` に含まれる **`clang-include-cleaner-21` は最初から入っていた**。
 clang-tidy 抜きで単体調査するならこれが手軽:
 
-```fish
+```sh
 clang-include-cleaner-21 -p build/debug --print=changes \
   --ignore-headers='glm/.*,vulkan/.*' 02_simplecube/simplecube_app.cpp
 ```
@@ -145,11 +145,11 @@ clang-include-cleaner-21 -p build/debug --print=changes \
 
 ### 設定ファイルは3つに分かれる
 
-| ファイル | 読むツール | 用途 |
-| --- | --- | --- |
-| `.clang-format` | clang-format | 整形 |
-| `.clangd` | clangd（LSP）のみ | エディタ挙動・clangd 内蔵 include-cleaner |
-| `.clang-tidy` | clang-tidy **と** clangd | チェック選択・命名規約 |
+| ファイル        | 読むツール               | 用途                                      |
+| --------------- | ------------------------ | ----------------------------------------- |
+| `.clang-format` | clang-format             | 整形                                      |
+| `.clangd`       | clangd（LSP）のみ        | エディタ挙動・clangd 内蔵 include-cleaner |
+| `.clang-tidy`   | clang-tidy **と** clangd | チェック選択・命名規約                    |
 
 `.clangd` は clang-tidy の設定ファイルではない。`.clangd` の
 `Diagnostics.Includes.IgnoreHeader` は **clangd 内蔵**の include-cleaner 向けで、
@@ -178,7 +178,7 @@ Diagnostics:
 
 ### 使い方
 
-```fish
+```sh
 clang-tidy -p build/debug --quiet 02_simplecube/simplecube_app.cpp   # 単一ファイル
 run-clang-tidy -p build/debug -quiet -j 8                            # 全ファイル
 clang-tidy -p build/debug --fix 02_simplecube/simplecube_app.cpp     # 自動修正
@@ -186,13 +186,13 @@ clang-tidy -p build/debug --fix 02_simplecube/simplecube_app.cpp     # 自動修
 
 ### 導入時点の検出結果（46件、誤検知ゼロ）
 
-| チェック | 件数 | 備考 |
-| --- | --- | --- |
-| `misc-include-cleaner` | 30 | 9ファイルに分散。→ `docs/notes/task-misc-include-cleaner.md` |
-| `clang-analyzer-deadcode.DeadStores` | 5 | 未使用ローカル変数 |
-| `performance-avoid-endl` | 4 | `std::endl` → `'\n'` |
-| `bugprone-narrowing-conversions` | 3 | int→float 2件、size_t→streamsize 1件 |
-| `readability-identifier-naming` | 4 | `mainEntryPoint` / `run`（PascalCase 違反） |
+| チェック                             | 件数 | 備考                                                         |
+| ------------------------------------ | ---- | ------------------------------------------------------------ |
+| `misc-include-cleaner`               | 30   | 9ファイルに分散。→ `docs/notes/task-misc-include-cleaner.md` |
+| `clang-analyzer-deadcode.DeadStores` | 5    | 未使用ローカル変数                                           |
+| `performance-avoid-endl`             | 4    | `std::endl` → `'\n'`                                         |
+| `bugprone-narrowing-conversions`     | 3    | int→float 2件、size_t→streamsize 1件                         |
+| `readability-identifier-naming`      | 4    | `mainEntryPoint` / `run`（PascalCase 違反）                  |
 
 **`<cmath>` の件は単発の見落としではなく、9ファイルに散らばった同じ構造の問題だった。**
 規約と実態に系統的なずれがあったということ。
