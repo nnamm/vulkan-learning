@@ -21,3 +21,4 @@ lib/stage2/
 _tmp/
 build/
 *.bk
+*.log
