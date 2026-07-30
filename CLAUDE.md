@@ -14,6 +14,9 @@ This file provides guidance to Claude Code and Codex when working with code in t
 
 - `docs/notes/vulkan-mental-model.md` — Vulkanのメンタルモデル（オブジェクト間の関係・同期の俯瞰）
 - `docs/notes/learning-log.md` — 学習ログ。写経の進捗・現在地・次にやることを記録
+- `docs/notes/include-investigation.md` — インクルード調査の道具箱（`-H` / `/showIncludes`）と
+  clang-tidy の設定経緯。環境差でビルドが通らないとき、推移的インクルードを特定する手順
+- `docs/notes/task-misc-include-cleaner.md` — 未着手タスク。推移的インクルード30件の解消
 
 学習に関する会話を始めるときは、まず learning-log.md の最新エントリで現在地を把握すること。
 写経がひと区切りついたら、ログへの追記をユーザに提案すること。
@@ -43,12 +46,20 @@ cmake --build --preset release
 ## コーディング規約
 
 - `.clang-format` 適用: Google style ベース、4スペースインデント、100カラム制限
-- クラス名: PascalCase（`TriangleApp`）
-- インターフェース: I プレフィックス（`ISampleApp`）
-- メンバー関数: camelCase（`OnInitialize()`）
-- メンバー変数: m\_ プレフィックス（`m_vkInstance`）
+- クラス名 / 構造体名: PascalCase（`TriangleApp`, `FrameContext`）
+- インターフェース: I プレフィックス（`ISampleApp`, `IBufferResource`）
+- 関数: PascalCase（メンバー関数 `OnInitialize()`, 自由関数 `LoadShaderModule()`）
+- メンバー変数: m\_ プレフィックス + camelCase（`m_vkInstance`）。
+  ただし単純なデータ集約の struct のパブリックメンバは m\_ なし camelCase（`FrameContext::inflightFence`）
+- パブリック定数: PascalCase（`VulkanContext::MaxInflightFrames`）
+- ローカル変数 / 引数: camelCase（`bufferSize`, `stackAngle`）
+- グローバル変数（匿名 namespace 含む）: g\_ プレフィックス（`g_assetRoot`）
+- 名前空間: lower_case（`loader`）
 - `#pragma once` でヘッダーガード
 - 推移的インクルードは行わず、ヘッダファイルは明示的に指定する
+
+上記は `.clang-tidy` の `readability-identifier-naming` で機械化済み。
+`clang-tidy -p build/debug <file>` で検査できる（詳細は `docs/notes/include-investigation.md`）。
 
 ## Vulkan 固有の注意
 
