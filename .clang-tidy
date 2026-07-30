@@ -1,0 +1,58 @@
+# clang-tidy 設定。CLI（clang-tidy / run-clang-tidy）と clangd の双方がこのファイルを読む。
+# （`.clangd` は clangd 専用の設定で、こちらとは役割が別）
+#
+# 方針: 写経の妨げにならない範囲で「実際のバグ」「暗黙のインクルード依存」「命名規約からの逸脱」
+# を拾う。cppcoreguidelines-* / modernize-* は Vulkan の C API 相手だと大量に鳴る
+# （reinterpret_cast、C 配列、.sType 手書き初期化などは写経では避けられない）ため無効。
+
+Checks: >
+  -*,
+  bugprone-*,
+  clang-analyzer-*,
+  misc-include-cleaner,
+  performance-*,
+  readability-identifier-naming,
+  -bugprone-easily-swappable-parameters
+
+# プロジェクト自身のヘッダも解析対象にする（既定ではヘッダ内の警告は報告されない）。
+# glm / Vulkan は -isystem 経由なので SystemHeaders: false により対象外のまま。
+HeaderFilterRegex: '/(lib/stage[0-9]|[0-9]{2}_[a-z]+)/[^/]*\.h$'
+
+CheckOptions:
+  # glm / Vulkan は下位ヘッダを束ねる傘ヘッダ構成のため、include-cleaner が
+  # 「型の提供元は最深ヘッダ」と判定し、glm/ext.hpp を消して
+  # glm/ext/matrix_float4x4.hpp を直接 include せよという誤検知を出す（無効化すると 74件 → 4件）。
+  # 区切りは「セミコロン」。カンマは無視される（clang-tidy 21.1.8 で実測確認）。
+  misc-include-cleaner.IgnoreHeaders: 'glm/.*;vulkan/.*'
+
+  # int → float の縮小変換。グラフィクスコードでは意図的に多用するので、
+  # 煩わしくなったら 'false' にする。
+  bugprone-narrowing-conversions.WarnOnIntegerToFloatingPointNarrowingConversion: 'true'
+
+  # --- 命名規約（CLAUDE.md「コーディング規約」の機械化） ---
+  # CamelCase = PascalCase、camelBack = camelCase（clang-tidy の用語）
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.EnumCase: CamelCase
+  readability-identifier-naming.EnumConstantCase: CamelCase
+  readability-identifier-naming.TypeAliasCase: CamelCase
+  readability-identifier-naming.TypedefCase: CamelCase
+  readability-identifier-naming.NamespaceCase: lower_case
+  # 関数はメンバー・自由関数ともに PascalCase
+  readability-identifier-naming.FunctionCase: CamelCase
+  readability-identifier-naming.MethodCase: CamelCase
+  # メンバー変数は m_ + camelCase。struct のパブリックメンバは m_ なし
+  readability-identifier-naming.PrivateMemberCase: camelBack
+  readability-identifier-naming.PrivateMemberPrefix: 'm_'
+  readability-identifier-naming.ProtectedMemberCase: camelBack
+  readability-identifier-naming.ProtectedMemberPrefix: 'm_'
+  readability-identifier-naming.PublicMemberCase: camelBack
+  readability-identifier-naming.ParameterCase: camelBack
+  readability-identifier-naming.VariableCase: camelBack
+  # 匿名 namespace のファイルスコープ変数も GlobalVariable として扱われる（実測）
+  readability-identifier-naming.GlobalVariableCase: camelBack
+  readability-identifier-naming.GlobalVariablePrefix: 'g_'
+  # ローカル定数・constexpr 定数は無検査。数学記法（Cube 頂点の A..H、PI）を許すため。
+  # なお constexpr の表記は `PI` と `kAssetDirs` で不統一（どちらに寄せるか未決）。
+  readability-identifier-naming.LocalConstantCase: aNy_CasE
+  readability-identifier-naming.ConstexprVariableCase: aNy_CasE

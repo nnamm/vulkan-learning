@@ -25,7 +25,7 @@
 
 namespace fs = std::filesystem;
 
-int mainEntryPoint() {
+int MainEntryPoint() {
     // 初期化処理
     if (!glfwInit()) {
         return -1;
@@ -89,14 +89,15 @@ static fs::path GetExecutableDir() {
 #endif
 
 // OS非依存の共通セットアップ
-static int run() {
+static int Run() {
     fs::path exeDir = GetExecutableDir();
     fs::current_path(exeDir);
     SetAssetRootPath(exeDir / "../../../assets");
-    return mainEntryPoint();
+    return MainEntryPoint();
 }
 
 #if defined(_WIN32)
+// NOLINTNEXTLINE(readability-identifier-naming)
 int __stdcall wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int) {
     try {
 #if defined(_DEBUG)
@@ -120,7 +121,7 @@ int __stdcall wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int
 #elif defined(__linux__)
 int main() {
     try {
-        return run();
+        return Run();
     } catch (const std::exception& e) {
         std::cerr << "Exception: " << e.what() << std::endl;
         return -1;

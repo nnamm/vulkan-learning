@@ -2,6 +2,7 @@
 
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <glm/ext/scalar_constants.hpp>
@@ -145,9 +146,9 @@ void SimpleCubeApp::CreateSphereGeometry() {
         for (int slice = 0; slice <= sliceCount; ++slice) {
             auto sliceAngle = slice * sliceStep;
 
-            auto x = std::cosf(stackAngle) * std::cosf(sliceAngle);
-            auto y = std::sinf(stackAngle);
-            auto z = std::cosf(stackAngle) * std::sinf(sliceAngle);
+            auto x = std::cos(stackAngle) * std::cos(sliceAngle);
+            auto y = std::sin(stackAngle);
+            auto z = std::cos(stackAngle) * std::sin(sliceAngle);
 
             Vertex v;
             v.position = glm::vec3(x, y, z);
