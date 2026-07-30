@@ -11,7 +11,60 @@
 
 ---
 
-## 2026-07-20
+## 2026-07-30
+
+### やったこと
+
+4章までの振り返りの一環として、コード品質まわりを整備した（写経そのものは進めていない）。
+
+- **`std::cosf` の疑問から推移的インクルード問題を発見。** `02_simplecube` の `cosf`/`sinf` が
+  「C の拡張では?」という疑問を起点に調査。結論は「`cosf` は C99 標準、`std::cosf` も
+  libstdc++ が提供しており書き方は問題なし」。ただし `<cmath>` を include しておらず、
+  `glm/glm.hpp` → `glm/detail/_fixes.hpp` 経由で暗黙に入っていた（`g++ -H` で特定）
+- **`.clang-tidy` を導入**（`clang-tidy` / `clangd` を apt で追加）。導入時点で46件検出、
+  誤検知ゼロ。うち `misc-include-cleaner` が30件で、**同じ構造の暗黙依存が9ファイルに分散**していた
+- **CLAUDE.md の命名規約を実態に合わせて修正。** 「メンバー関数は camelCase」と書いてあったが
+  実コードは全て PascalCase。未文書だった `g_` プレフィックスと `lower_case` 名前空間も追記し、
+  `readability-identifier-naming` で機械化。`mainEntryPoint`/`run` を PascalCase にリネームして0件に
+- **Git 運用方針を CLAUDE.md に明文化。** コミットを「変更の理由」で分ける、整形と意味変更を
+  混ぜない、マージは `Create a merge commit`（Squash は使わない）
+- ノート2本を追加: `include-investigation.md`（`-H` の使い方と clang-tidy 設定の経緯）、
+  `task-misc-include-cleaner.md`（残30件の引き継ぎメモ）
+- 上記を5コミットに分割して PR #5 → `Create a merge commit` でマージ
+
+### 現在地: 4章完了・振り返り中。5章は未着手
+
+clang-tidy の残件42件（うち30件は推移的インクルード）。ビルドは Kubuntu で通ることを確認済み。
+Windows 側では未確認（`wWinMain` の `NOLINTNEXTLINE` も Windows でのみ検証可能）。
+
+### 次にやること
+
+1. `docs/notes/task-misc-include-cleaner.md` の30件を解消する（**別セッションで実施予定**）
+2. 残りの clang-tidy 指摘12件（DeadStores 5 / `std::endl` 4 / narrowing 3）
+3. constexpr 定数の表記統一（`PI` vs `kAssetDirs`）— 未決。Google style に寄せるなら `kPi`
+4. 5章の写経を開始する
+5. Windows 環境でもビルドと clang-tidy を通す
+
+### 気づき
+
+- **「ビルドが通る」と「依存が明示されている」は別物。** 今回 MSVC でも Kubuntu でも通っていたのは
+  たまたま glm が `<cmath>` を連れてきていたから。glm 側のリファクタ一つで両環境とも壊れる。
+  **動いていることは、依存が正しいことの証明にならない**
+- **エラーメッセージの文面を疑う前に、依存の入り口を疑う。** 「`std::cosf` が無い」と言われると
+  `cosf` の書き方を疑いたくなるが、実際は include 漏れだった。`-H`（GCC/Clang）や
+  `/showIncludes`（MSVC）でインクルード木を出せば、推測せずに特定できる
+- **C++ に統一された命名のベストプラクティスは存在しない。** 標準ライブラリは snake_case、
+  Google は PascalCase、LLVM は camelBack、Qt は camelCase。
+  **唯一の基準はプロジェクト内の一貫性**。今回 PascalCase を選んだのは「正しいから」ではなく
+  「このプロジェクトが既にそう選んでいたから」
+- **規約は機械化して初めて実態とのずれが見える。** CLAUDE.md の命名規約は3項目が実態と違い、
+  2項目が未文書だった。人間の目視では気づけていなかった
+- **ツールの設定はドキュメントより実測。** `misc-include-cleaner.IgnoreHeaders` の区切りは
+  セミコロンで、カンマは**エラーにならず黙って無視される**（74件 vs 4件で判明）。
+  一方、単体ツールの `clang-include-cleaner` はカンマ区切り。同系統のツールでも違う
+- **コミットは「大きさ」ではなく「変更の理由」で分ける。** 判断基準は
+  「単独で revert できるか」「`git blame` で読む人が納得するか」。
+  今回の作業は一言でいえば「整備」だが、それは結果の要約であって理由ではない
 
 ### やったこと
 
