@@ -25,7 +25,7 @@ This file provides guidance to Claude Code and Codex when working with code in t
 
 環境変数 `VCPKG_ROOT` が必要（vcpkg のルートパスを指す）。
 
-```
+```sh
 # デバッグモード
 cmake --preset debug
 cmake --build --preset debug
@@ -60,6 +60,27 @@ cmake --build --preset release
 
 上記は `.clang-tidy` の `readability-identifier-naming` で機械化済み。
 `clang-tidy -p build/debug <file>` で検査できる（詳細は `docs/notes/include-investigation.md`）。
+
+## Git 運用
+
+### コミット
+
+- **「変更の理由」ごとに分ける。** 大きさや作業時間ではなく理由が単位。
+  判断基準は「単独で revert できるか」「`git blame` で読む人が納得するか」
+- **整形と意味変更を混ぜない。** 混ぜざるを得ないときは、その旨をメッセージ本文に明記する
+  （整形コミットは「読まなくてよい」と分かることに価値があるため）
+- **今回の作業と無関係な変更を巻き込まない。** 特に依存関係の更新（`vcpkg.json` の
+  baseline など）は単独コミットにする。混ぜると後から原因を追えなくなる
+- メッセージは英語（既存履歴に合わせる）。**件名に「何をしたか」、本文に「なぜそうしたか」**。
+  採らなかった選択肢とその理由も本文に残す
+
+### ブランチとマージ
+
+- 作業はブランチを切って行い、PR を経由して `main` に入れる
+- **マージは `Create a merge commit`。** `Squash and merge` は使わない
+  — コミットを分割した意図が失われるため
+- マージ後はローカル・リモート双方のブランチを削除する
+  （`git branch -d` / `git push origin --delete` / `git fetch --prune`）
 
 ## Vulkan 固有の注意
 
