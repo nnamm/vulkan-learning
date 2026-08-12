@@ -18,7 +18,8 @@ This file provides guidance to Claude Code and Codex when working with code in t
   ファイル単位で逆引きする索引（メンタルモデルが「概念→コード」、こちらが「コード→概念」）
 - `docs/notes/include-investigation.md` — インクルード調査の道具箱（`-H` / `/showIncludes`）と
   clang-tidy の設定経緯。環境差でビルドが通らないとき、推移的インクルードを特定する手順
-- `docs/notes/task-misc-include-cleaner.md` — 未着手タスク。推移的インクルード30件の解消
+- `docs/notes/task-misc-include-cleaner.md` — 完了タスクの記録（2026-08-12）。推移的インクルード30件の
+  解消でやったこと・分かったこと・残した別件
 
 学習に関する会話を始めるときは、まず learning-log.md の最新エントリで現在地を把握すること。
 写経がひと区切りついたら、ログへの追記をユーザに提案すること。
