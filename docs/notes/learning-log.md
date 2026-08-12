@@ -11,6 +11,57 @@
 
 ---
 
+## 2026-08-12（2）
+
+### やったこと
+
+**Linux で検証レイヤーが一度も動いていなかったことが判明し、有効化して出た指摘を潰した。**
+
+- **原因**: `CreateInstance()` の `#if DEBUG || _DEBUG`。MSVC は Debug 構成で `_DEBUG` を自動定義するが
+  GCC/Clang は何も定義しない。**写経の初期は Windows がメイン環境だったため気づかず、
+  Kubuntu に移ってから静かに無効化されていた**
+- **対策**: `CMakeLists.txt` の `project_options` に `$<$<CONFIG:Debug>:DEBUG>` を追加。
+  ソースの条件式は触らないので、Windows は従来どおり `_DEBUG` 経由で動く
+- **出た指摘は `ERROR` が3種類。`WARNING` と `PERFORMANCE` はゼロ**
+  1. `VkDescriptorSetAllocateInfo-sType-sType` — `sType` の写経ミス → 修正
+  2. `vkDestroyDevice-device-05137` — `Cleanup()` の DescriptorPool 破棄漏れ → 修正
+  3. `vkCmdBeginRendering-pRenderingInfo-09588` — 深度バッファのレイアウト未遷移 → **5章送り**
+- 3 を保留にしたのは、5章に `DEPTH_ATTACHMENT_OPTIMAL` が出てくるため。写経の連続性を優先し、
+  自前の実装を先に入れて書籍版と衝突させない判断（詳細と検証手順は `stage1-map.md` §7）
+
+### 現在地: 4章完了・振り返り中。5章は未着手
+
+検証レイヤーが常時有効になった。既知の違反は3の1件のみで、実行するたび指摘が出る状態。
+
+### 次にやること
+
+1. **5章の写経を開始する。** 併せて2つの仮説を検証する
+   - 深度バッファの遷移が `lib` 側に入るか（入れば 02 は再ビルドだけで直る）
+   - `VulkanContext::SubmitAndWait()` の呼び出し元が現れるか（実装はサンプルにあり、写経で飛ばしていた）
+2. `docs/notes/task-misc-include-cleaner.md` の30件（**別セッションで実施予定**）
+3. 残りの clang-tidy 指摘（`performance-avoid-endl` を1件消化）
+4. constexpr 定数の表記統一（`PI` vs `kAssetDirs`）— 未決
+5. Windows 環境でもビルドと clang-tidy を通す
+
+### 気づき
+
+- **無効化された検出器は、存在しないのと同じ。** 4章まで「動いている」と思っていたコードに
+  仕様違反が3件あり、うち2件は数分で直る単純な抜けだった。実力の問題ではなく
+  **見えていなかっただけ**。検証レイヤーを最初に有効化しておくのが、何よりコストの安い投資
+- **条件コンパイルは、環境を移した瞬間に無言で死ぬ。** ビルドは通り、警告も出ず、
+  「無効になったこと自体が無言」だった。デバッグ機能の有効/無効は、起動時に1行ログを出すなどして
+  **外から見える状態にしておくべき**かもしれない
+- **同名の別関数に注意。** `VulkanContext::SubmitAndWait(std::shared_ptr<CommandBuffer>)` を
+  探していたのに `ResourceUploader::SubmitAndWait()` を見つけ、「解決した」と誤認しかけた。
+  探すときは**クラス名とシグネチャまで込みで**照合する
+- **サンプルとの差分照合は、行番号でなく「どの関数のどの位置か」で行う。** 同じ `TransitionLayout` が
+  描画前（`FromUndefinedToColorAttachment`）と描画後（`FromColorToPresent`）の2箇所にあり、
+  別々の場所を比べて食い違いと誤認した。**同じ関数が複数回呼ばれるコードでは必ず起きる**
+- **1つの検出器を有効にすると、無関係な既存タスクも1件片付く。** `performance-avoid-endl` の対応を
+  ついでに済ませられた。指摘が出ている場所を触るときが、そのファイルの負債を返す好機
+
+---
+
 ## 2026-08-12
 
 ### やったこと

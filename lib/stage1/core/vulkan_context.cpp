@@ -21,14 +21,13 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
     std::stringstream ss;
-    ss << "[Validation Layer] " << pCallbackData->pMessage << std::endl;
+    ss << "[Validation Layer] " << pCallbackData->pMessage << '\n';
 
 #if defined(_WIN32)
     OutputDebugStringA(ss.str().c_str());
-    std::cerr << ss.str() << std::endl;  // エラーをコンソール出力（書籍と違う部分）
-#else
-    std::cerr << ss.str() << std::endl;
 #endif
+    // エラーをコンソール出力（書籍と違う部分）
+    std::cerr << ss.str();
     return VK_FALSE;
 }
 
@@ -53,6 +52,7 @@ void VulkanContext::Cleanup() {
 
     DestroyFrameContexts();
     vkDestroyCommandPool(m_vkDevice, m_commandPool, nullptr);
+    vkDestroyDescriptorPool(m_vkDevice, m_descriptorPool, nullptr);
 
     if (m_debugMessenger != VK_NULL_HANDLE) {
         auto func = VK_GET_INSTANCE_PROC_ADDR(m_vkInstance, vkDestroyDebugUtilsMessengerEXT);
@@ -400,7 +400,7 @@ std::shared_ptr<CommandBuffer> VulkanContext::CreateCommandBuffer() {
 
 VkDescriptorSet VulkanContext::AllocateDescriptorSet(VkDescriptorSetLayout layout) {
     VkDescriptorSetAllocateInfo allocInfo{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .descriptorPool = m_descriptorPool,
         .descriptorSetCount = 1,
         .pSetLayouts = &layout,

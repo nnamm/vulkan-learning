@@ -375,9 +375,9 @@ GLM の既定は OpenGL 流の深度範囲 −1〜1 だが Vulkan は 0〜1 な�
 
 ---
 
-## §7. 4章時点で未使用・未接続と確認できたもの
+## §7. 未使用・未接続と、検証レイヤーの指摘
 
-読解の邪魔になるので分離した。いずれもソースを grep して確認した事実。
+読解の邪魔になるので分離した。ソースを grep して確認した事実と、検証レイヤーが報告した違反。
 
 ### 宣言のみで定義が存在しない
 
@@ -401,11 +401,35 @@ GLM の既定は OpenGL 流の深度範囲 −1〜1 だが Vulkan は 0〜1 な�
   `SetColorBlendAttachmentState()`
 - `Texture2D` / `StorageImage2D`、`AssetType::Texture` / `AssetType::Model`
 
+### 検証レイヤーで確定した違反（2026-08-12 追記）
+
+Linux では `#if DEBUG || _DEBUG` により検証レイヤーが一度も有効になっていなかった
+（MSVC のみ `_DEBUG` を自動定義するため）。CMake で `DEBUG` を定義して有効化したところ、
+`ERROR` が3種類出た。`WARNING` と `PERFORMANCE` はゼロ。
+
+| VUID | 内容 | 状態 |
+| --- | --- | --- |
+| `VkDescriptorSetAllocateInfo-sType-sType` | `AllocateDescriptorSet()` の `sType` 誤り | 修正済み |
+| `vkDestroyDevice-device-05137` | `Cleanup()` が DescriptorPool を破棄していない | 修正済み |
+| `vkCmdBeginRendering-pRenderingInfo-09588` | 深度バッファのレイアウトが `UNDEFINED` のまま | **未対応・5章で検証** |
+
+**未対応の1件について**: `DepthBuffer` は `initialLayout = VK_IMAGE_LAYOUT_UNDEFINED` で作られたあと、
+どこでも遷移されない。一方 `simplecube_app.cpp` の `depthAttachment.imageLayout` は
+`DEPTH_ATTACHMENT_OPTIMAL` を宣言しており、申告と実態が食い違ったまま毎フレーム描画している
+（スワップチェインイメージは毎フレーム遷移させているので、深度だけが非対称）。
+
+5章に `DEPTH_ATTACHMENT_OPTIMAL` が登場するため、以下を仮説として持ち越す。
+
+- 遷移処理が `lib/stage1` 側に入るなら、02 は再ビルドするだけで直る
+- 5章のアプリ側に入るなら、02 は自前で直す必要がある（`DepthBuffer::GetSubresourceRange()` の
+  追加と、深度用の `ImageLayoutTransition` ファクトリの新設が要る）
+
+**検証手順**: 5章の `lib` を写経したあと、**02 のコードには触れずに**再ビルドして実行する。
+指摘が消えれば前者、残れば後者。あわせて `VulkanContext::SubmitAndWait()` の呼び出し元が
+現れるかも見る（初期化時に1回遷移させる方式なら必ず要るため、同じ場所で回収される可能性が高い）。
+
 ### 気づいた実装上の齟齬（要確認）
 
-- `VulkanContext::AllocateDescriptorSet()`（`vulkan_context.cpp:403`）— `VkDescriptorSetAllocateInfo` の
-  `sType` に `VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO` を設定している。
-  正しくは `VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO`
 - `ResourceUploader::SubmitAndWait()` — バリアの `dstAccessMask` に
   `UploadBuffer()` の引数 `nextAccessMask`（`entry.dstAccessMask` に保存済み）ではなく
   `dst->GetAccessFlags()` を使っている。現状は両者が一致するため結果は変わらない
