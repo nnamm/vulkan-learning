@@ -1,6 +1,6 @@
 # タスク: 推移的インクルードの解消（misc-include-cleaner 30件）
 
-**作成: 2026-07-30 / 状態: 未着手**
+作成: 2026-07-30 / 状態: 未着手
 
 このファイルは別セッションで作業するための引き継ぎメモ。単独で読んで作業を始められるように
 経緯も含めて書いてある。背景の詳細は `docs/notes/include-investigation.md`。
@@ -32,17 +32,17 @@
 
 ### 対象（2026-07-30 時点、`run-clang-tidy -p build/debug -quiet -j 8` の結果）
 
-| ファイル | 件数 | 不足している名前 |
-| --- | --- | --- |
-| `lib/stage1/core/swapchain.cpp` | 5 | `uint32_t`, `std::vector`, `std::max`, `UINT32_MAX`, `UINT64_MAX` |
-| `lib/stage1/core/shader_loader.cpp` | 5 | `std::filesystem::path`, `std::ios`, `std::runtime_error`, `size_t`, `uint32_t` |
-| `lib/stage1/core/vulkan_context.cpp` | 4 | `std::vector`, `std::shared_ptr`, `std::make_shared`, `std::make_unique` |
-| `lib/stage1/core/glfw_surface_provider.cpp` | 4 | `GLFWwindow`, `glfwCreateWindowSurface`, `glfwGetFramebufferSize`, `uint32_t` |
-| `02_simplecube/simplecube_app.cpp` | 4 | `std::vector`, `assert`, `memcpy`, `DepthBuffer` |
-| `01_triangle/triangle_app.cpp` | 3 | `std::vector`, `offsetof`, `ImageLayoutTransition` |
-| `lib/stage1/core/resource_uploader.cpp` | 2 | `std::vector`, `std::move` |
-| `lib/stage1/core/command_buffer.cpp` | 2 | `VulkanContext`, `ImageLayoutTransition` |
-| `lib/stage1/core/image_resource.cpp` | 1 | `uint32_t` |
+| ファイル                                    | 件数 | 不足している名前                                                                |
+| ------------------------------------------- | ---- | ------------------------------------------------------------------------------- |
+| `lib/stage1/core/swapchain.cpp`             | 5    | `uint32_t`, `std::vector`, `std::max`, `UINT32_MAX`, `UINT64_MAX`               |
+| `lib/stage1/core/shader_loader.cpp`         | 5    | `std::filesystem::path`, `std::ios`, `std::runtime_error`, `size_t`, `uint32_t` |
+| `lib/stage1/core/vulkan_context.cpp`        | 4    | `std::vector`, `std::shared_ptr`, `std::make_shared`, `std::make_unique`        |
+| `lib/stage1/core/glfw_surface_provider.cpp` | 4    | `GLFWwindow`, `glfwCreateWindowSurface`, `glfwGetFramebufferSize`, `uint32_t`   |
+| `02_simplecube/simplecube_app.cpp`          | 4    | `std::vector`, `assert`, `memcpy`, `DepthBuffer`                                |
+| `01_triangle/triangle_app.cpp`              | 3    | `std::vector`, `offsetof`, `ImageLayoutTransition`                              |
+| `lib/stage1/core/resource_uploader.cpp`     | 2    | `std::vector`, `std::move`                                                      |
+| `lib/stage1/core/command_buffer.cpp`        | 2    | `VulkanContext`, `ImageLayoutTransition`                                        |
+| `lib/stage1/core/image_resource.cpp`        | 1    | `uint32_t`                                                                      |
 
 対応ヘッダの目安: `std::vector` → `<vector>` / `std::max` → `<algorithm>` /
 `uint32_t`, `UINT32_MAX`, `UINT64_MAX` → `<cstdint>` / `size_t`, `offsetof` → `<cstddef>` /
@@ -73,9 +73,11 @@ git diff
 - **`glm/` と `vulkan/` は `.clang-tidy` で除外済み**（傘ヘッダ構成のため誤検知が出る）。
   この除外を外すと 74件に膨れるので触らない
 - 修正後は必ずビルドして通すこと:
-  ```fish
+
+```fish
   cmake --build --preset debug
-  ```
+```
+
 - **写経プロジェクトなので、AI に一括修正させるより1ファイルずつ理由を確認しながら進める方が
   学習価値が高い**。「なぜこのヘッダなのか」を都度確認したい
 
