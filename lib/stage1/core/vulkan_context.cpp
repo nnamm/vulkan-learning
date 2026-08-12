@@ -53,6 +53,7 @@ void VulkanContext::Cleanup() {
 
     DestroyFrameContexts();
     vkDestroyCommandPool(m_vkDevice, m_commandPool, nullptr);
+    vkDestroyDescriptorPool(m_vkDevice, m_descriptorPool, nullptr);
 
     if (m_debugMessenger != VK_NULL_HANDLE) {
         auto func = VK_GET_INSTANCE_PROC_ADDR(m_vkInstance, vkDestroyDebugUtilsMessengerEXT);
