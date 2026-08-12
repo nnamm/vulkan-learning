@@ -109,7 +109,7 @@ int __stdcall wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int
         freopen_s(&fpErr, "CONOUT$", "w", stderr);
         SetConsoleOutputCP(CP_UTF8);
 #endif
-        return run();
+        return Run();
     } catch (const std::exception& e) {
         MessageBoxA(nullptr, e.what(), "Exception", MB_OK | MB_ICONERROR);
         return -1;
