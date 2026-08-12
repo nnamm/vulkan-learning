@@ -4,8 +4,6 @@
 
 #include "core/vulkan_context.h"
 
-// #include <stdexcept>
-
 bool DepthBuffer::Initialize(VkExtent2D extent, VkFormat depthFormat) {
     auto& vulkanCtx = VulkanContext::Get();
     auto device = vulkanCtx.GetVkDevice();
