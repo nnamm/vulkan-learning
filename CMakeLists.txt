@@ -11,6 +11,10 @@ target_compile_options(project_options INTERFACE
   $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
 )
 
+target_compile_definitions(project_options INTERFACE
+  $<$<CONFIG:Debug>:DEBUG>
+)
+
 # 外部パッケージ
 find_package(Vulkan REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
