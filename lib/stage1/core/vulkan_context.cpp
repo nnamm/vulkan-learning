@@ -21,14 +21,13 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
     std::stringstream ss;
-    ss << "[Validation Layer] " << pCallbackData->pMessage << std::endl;
+    ss << "[Validation Layer] " << pCallbackData->pMessage << '\n';
 
 #if defined(_WIN32)
     OutputDebugStringA(ss.str().c_str());
-    std::cerr << ss.str() << std::endl;  // エラーをコンソール出力（書籍と違う部分）
-#else
-    std::cerr << ss.str() << std::endl;
 #endif
+    // エラーをコンソール出力（書籍と違う部分）
+    std::cerr << ss.str();
     return VK_FALSE;
 }
 
