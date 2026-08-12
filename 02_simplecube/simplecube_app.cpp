@@ -1,18 +1,22 @@
 #include "simplecube_app.h"
 
 #include <array>
+#include <cassert>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <glm/ext/scalar_constants.hpp>
 #include <stdexcept>
 #include <thread>
+#include <vector>
 
 #include "core/asset_path.h"
 #include "core/buffer_resource.h"
 #include "core/graphics_pipeline_builder.h"
 #include "core/image_barrier.h"
+#include "core/image_resource.h"
 #include "core/shader_loader.h"
 #include "core/swapchain.h"
 #include "core/vulkan_context.h"

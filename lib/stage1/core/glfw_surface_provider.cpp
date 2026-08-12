@@ -1,5 +1,8 @@
 ﻿#include "glfw_surface_provider.h"
 
+#include <GLFW/glfw3.h>
+
+#include <cstdint>
 #include <stdexcept>
 
 GLFWSurfaceProvider::GLFWSurfaceProvider(GLFWwindow* window) : m_window(window) {}

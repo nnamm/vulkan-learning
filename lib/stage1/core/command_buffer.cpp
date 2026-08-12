@@ -1,5 +1,8 @@
 ﻿#include "core/command_buffer.h"
 
+#include "core/image_barrier.h"
+#include "core/vulkan_context.h"
+
 CommandBuffer::CommandBuffer(VkCommandBuffer commandBuffer) { m_commandBuffer = commandBuffer; }
 
 CommandBuffer::~CommandBuffer() {

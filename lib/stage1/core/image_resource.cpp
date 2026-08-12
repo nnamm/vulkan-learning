@@ -1,5 +1,7 @@
 ﻿#include "core/image_resource.h"
 
+#include <cstdint>
+
 #include "core/vulkan_context.h"
 
 // #include <stdexcept>

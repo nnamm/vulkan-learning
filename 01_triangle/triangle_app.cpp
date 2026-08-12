@@ -2,14 +2,17 @@
 
 #include <array>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <stdexcept>
 #include <thread>
+#include <vector>
 
 #include "core/asset_path.h"
 #include "core/buffer_resource.h"
 #include "core/graphics_pipeline_builder.h"
+#include "core/image_barrier.h"
 #include "core/shader_loader.h"
 #include "core/swapchain.h"
 #include "core/vulkan_context.h"

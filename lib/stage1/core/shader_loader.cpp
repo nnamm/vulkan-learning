@@ -1,6 +1,11 @@
 #include "core/shader_loader.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <filesystem>
 #include <fstream>
+#include <ios>
+#include <stdexcept>
 #include <vector>
 
 #include "core/vulkan_context.h"

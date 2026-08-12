@@ -1,7 +1,10 @@
 #include "swapchain.h"
 
+#include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <stdexcept>
+#include <vector>
 
 bool Swapchain::Recreate(uint32_t width, uint32_t height) {
     auto& vulkanCtx = VulkanContext::Get();
