@@ -400,7 +400,7 @@ std::shared_ptr<CommandBuffer> VulkanContext::CreateCommandBuffer() {
 
 VkDescriptorSet VulkanContext::AllocateDescriptorSet(VkDescriptorSetLayout layout) {
     VkDescriptorSetAllocateInfo allocInfo{
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .descriptorPool = m_descriptorPool,
         .descriptorSetCount = 1,
         .pSetLayouts = &layout,
