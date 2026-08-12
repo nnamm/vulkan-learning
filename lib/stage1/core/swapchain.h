@@ -1,8 +1,4 @@
 #pragma once
-// #include <map>
-// #include <string>
-
-// #include "core/surface_provider.h"
 #include "core/vulkan_context.h"
 
 class VulkanContext;

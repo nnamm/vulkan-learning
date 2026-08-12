@@ -1,6 +1,8 @@
 #include "core/vulkan_context.h"
 
 #include <cstdint>
+#include <memory>
+#include <vector>
 
 #include "core/surface_provider.h"
 #include "core/swapchain.h"

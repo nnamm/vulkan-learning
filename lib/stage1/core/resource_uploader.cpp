@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <cstring>
+#include <utility>
+#include <vector>
 
 #include "core/buffer_resource.h"
 #include "core/vulkan_context.h"
