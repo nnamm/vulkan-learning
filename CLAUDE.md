@@ -14,6 +14,8 @@ This file provides guidance to Claude Code and Codex when working with code in t
 
 - `docs/notes/vulkan-mental-model.md` — Vulkanのメンタルモデル（オブジェクト間の関係・同期の俯瞰）
 - `docs/notes/learning-log.md` — 学習ログ。写経の進捗・現在地・次にやることを記録
+- `docs/notes/stage1-map.md` — `lib/stage1` のファイルマップ。各ファイルの目的・処理・責務・利用者を
+  ファイル単位で逆引きする索引（メンタルモデルが「概念→コード」、こちらが「コード→概念」）
 - `docs/notes/include-investigation.md` — インクルード調査の道具箱（`-H` / `/showIncludes`）と
   clang-tidy の設定経緯。環境差でビルドが通らないとき、推移的インクルードを特定する手順
 - `docs/notes/task-misc-include-cleaner.md` — 未着手タスク。推移的インクルード30件の解消
