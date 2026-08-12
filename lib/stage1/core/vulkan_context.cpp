@@ -27,7 +27,8 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(
     OutputDebugStringA(ss.str().c_str());
 #endif
     // エラーをコンソール出力（書籍と違う部分）
-    std::cerr << ss.str();
+    // 末尾の '\n' は ss の改行との重複ではなく、メッセージ間を空行で区切るためのもの
+    std::cerr << ss.str() << '\n';
     return VK_FALSE;
 }
 
