@@ -54,7 +54,9 @@ cmake --build --preset release
 - 関数: PascalCase（メンバー関数 `OnInitialize()`, 自由関数 `LoadShaderModule()`）
 - メンバー変数: m\_ プレフィックス + camelCase（`m_vkInstance`）。
   ただし単純なデータ集約の struct のパブリックメンバは m\_ なし camelCase（`FrameContext::inflightFence`）
-- パブリック定数: PascalCase（`VulkanContext::MaxInflightFrames`）
+- 定数: k プレフィックス + PascalCase（`kPi`, `kAssetDirs`, `VulkanContext::kMaxInflightFrames`）。
+  `constexpr` とクラスの `static const` が対象。ローカルの `const` は無検査
+  （Cube 頂点の `A`..`H` のような数学記法を許すため）
 - ローカル変数 / 引数: camelCase（`bufferSize`, `stackAngle`）
 - グローバル変数（匿名 namespace 含む）: g\_ プレフィックス（`g_assetRoot`）
 - 名前空間: lower_case（`loader`）

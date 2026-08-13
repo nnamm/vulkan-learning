@@ -13,7 +13,7 @@ class ISurfaceProvider;
 
 class VulkanContext {
  public:
-  const uint32_t MaxInflightFrames = 2;
+  static constexpr uint32_t kMaxInflightFrames = 2;
   static VulkanContext& Get();
 
   // 初期化

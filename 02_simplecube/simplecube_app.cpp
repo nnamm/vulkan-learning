@@ -213,7 +213,7 @@ void SimpleCubeApp::CreateDescriptorSetLayout() {
 
 void SimpleCubeApp::CreateUniformBuffers() {
     auto& vulkanCtx = VulkanContext::Get();
-    assert(vulkanCtx.MaxInflightFrames == m_uniformBuffers.size());
+    assert(VulkanContext::kMaxInflightFrames == m_uniformBuffers.size());
 
     for (uint32_t i = 0; i < m_uniformBuffers.size(); ++i) {
         m_uniformBuffers[i] = UniformBuffer::Create(sizeof(SceneConstants));
