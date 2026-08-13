@@ -3,5 +3,6 @@ AccessModifierOffset: -2
 AllowShortIfStatementsOnASingleLine: Never
 BreakBeforeBraces: Attach
 ColumnLimit: 100
-DerivePointerAlignment: true
+DerivePointerAlignment: false
 IndentWidth: 4
+PointerAlignment: Left

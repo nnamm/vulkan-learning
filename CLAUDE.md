@@ -52,11 +52,16 @@ cmake --build --preset release
 
 ### 整形 — `.clang-format`
 
-`BasedOnStyle: Google` に6項目を上書き（4スペースインデント、100カラム制限ほか）。
+`BasedOnStyle: Google` に7項目を上書き（4スペースインデント、100カラム制限ほか）。
 ベースは「明示しなかった残り159項目の初期値」を決めているだけで、このプロジェクトが
 Google style を採用しているという意味ではない。整形結果に不満が出たときは、ベースを
 乗り換えるのではなく該当オプションを1行足して上書きする（ベース変更は159項目が
 まとめて動くため、直したい1項目のために知らない項目まで動く）。
+項目数は `clang-format --style=Google --dump-config` の最上位キーを数えたもの（`Language` を除いて166）。
+
+**ポインタ・参照の `*` / `&` は型側に寄せる**（`char* p`, `const std::string& s`）。
+`DerivePointerAlignment: false` + `PointerAlignment: Left` で固定しており、
+ファイルごとの推定に任せていない。
 
 なお **clang-format は識別子の名前には一切触れない**。命名は下記の `.clang-tidy` の担当。
 
