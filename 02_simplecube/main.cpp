@@ -12,13 +12,12 @@
 #include <stdexcept>
 #endif
 
+#include <GLFW/glfw3.h>
+
 #include <cstdint>
 #include <filesystem>
 
 #include "core/asset_path.h"
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
 #include "core/glfw_surface_provider.h"
 #include "core/vulkan_context.h"
 #include "simplecube_app.h"
