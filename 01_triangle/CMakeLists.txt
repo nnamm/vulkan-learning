@@ -34,8 +34,9 @@ target_link_libraries(VkTriangle PRIVATE
   glm::glm
 )
 
-# マクロ定義（GLMのVulkan向け補正）
+# マクロ定義（GLMのVulkan向け補正 / glfw3.hにvulkan.hを先に読ませる）
 target_compile_definitions(VkTriangle PRIVATE
+  GLFW_INCLUDE_VULKAN
   GLM_FORCE_DEPTH_ZERO_TO_ONE
   GLM_FORCE_RADIANS
 )

@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "surface_provider.h"
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
+#include "surface_provider.h"
 
 class GLFWSurfaceProvider : public ISurfaceProvider {
   public:
