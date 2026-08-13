@@ -11,6 +11,96 @@
 
 ---
 
+## 2026-08-13
+
+### やったこと
+
+**constexpr 定数の表記統一（前回の「次にやること」6番）を片付けた。**
+ブランチ `refactor/constexpr-naming-convention`、4コミット。
+
+- **`.clang-tidy` に定数のルールを入れた** — `ConstexprVariableCase: CamelCase` +
+  `ConstexprVariablePrefix: 'k'`。`PI` → `kPi` にリネーム。`LocalConstantCase: aNy_CasE` は
+  維持したので、Cube 頂点の `A`..`H` は数学記法のまま残る
+- **`ClassConstantCase` の穴を塞いだ** — 検証中に発見。`static const` メンバは
+  `ClassConstant` が未設定だと **`GlobalVariable` に落ちて `g_otherConstant` を提案してくる**。
+  該当コードは現在ゼロだが、最初の1件が誤った名前を指されないように設定した
+- **`MaxInflightFrames` を `static constexpr` にした**（→ `kMaxInflightFrames`）。
+  詳細は下の気づき。ブランチ名の射程外だったが、望ましい形を採る判断
+- **CLAUDE.md のコーディング規約を「整形 / 命名 / その他 / 検査」に分割した。**
+  旧版は `.clang-format` の行を先頭に置いた1つの箇条書きで、末尾に
+  「上記は `readability-identifier-naming` で機械化済み」と書いてあった。
+  この「上記」には整形の行も `#pragma once` の行も入っており、**文が事実と違っていた**
+- ブランチ名は当初案の `chore/determine-how-to-constant` から変更。`determine-` は
+  作業中の思考を指していてマージ後に何が入ったか読めないこと、識別子のリネームは
+  `chore` ではなく `refactor` であることが理由
+
+### 現在地: 4章完了・振り返り中。5章は未着手（前回から変わらず）
+
+`run-clang-tidy` の残りは10件で前回と同数・同内容。**ヘッダまで検査対象を広げても +5件**
+であることを実測済み（下記「次にやること」5番）。
+
+### 次にやること
+
+1. **5章の写経を開始する**（最優先。仮説2つの検証も継続）
+   - 深度バッファの遷移が `lib` 側に入るか
+   - `VulkanContext::SubmitAndWait()` の呼び出し元が現れるか
+2. **`Swapchain::Recreate()` の2回目以降のリーク**（`stage1-map.md` §7）。リサイズ対応時に必ず踏む
+3. 残りの clang-tidy 指摘 — DeadStores 5件 / `performance-avoid-endl` 2件 / narrowing 3件
+4. `GLFW_INCLUDE_VULKAN` を CMake 側の定義に移す
+5. **ヘッダの扱いを決める**（旧5番を拡張）。今回2つが同じ根だと分かった
+   - `HeaderFilterRegex` が**サブディレクトリを含むパスにマッチしない**ため、
+     `lib/stage1` 配下のヘッダは1つも検査されていない（章ディレクトリ直下のヘッダは対象）
+   - 広げた場合の増分を実測済み: **+5件のみ**。CRTP コンストラクタ 3件
+     （`gpu_resource_base.h` / `buffer_resource.h` / `image_resource.h`）、
+     `performance-enum-size` 1件（`AssetType` は `uint8_t` で足りる）、
+     命名 1件（`GetWindowSystemExtensions` — `std::function` 型のメンバ変数なのに関数風の名前）
+   - **ただし regex 拡大では「ヘッダの自己完結性」は解決しない。** `misc-include-cleaner` は
+     main file しか見ないため、別の道具立て（各ヘッダを単独で include するだけの .cpp を生成する等）が要る
+6. Windows 環境でもビルドと clang-tidy を通す
+7. `DerivePointerAlignment: true` をどうするか。今は `*` の位置を**強制していない**
+   （実態は `char* p` の左寄せに揃っているが偶然）。強制するなら `false` + `PointerAlignment: Left`
+
+### 気づき
+
+- **「◯◯ style に従う」は、その規約が何を対象にしているかを読むまで決定ではない。**
+  Google style の `k` プレフィックスは「**静的記憶域期間**を持つ定数」に必須で、
+  それ以外の記憶域期間には**任意**と明記されている。`PI` も `kAssetDirs` も関数内の
+  ローカルで、`constexpr` を付けても static にはならないので、**両方とも「どちらでもよい」領域**だった。
+  「Google に寄せるなら `kPi`」は決め手になっておらず、結局プロジェクトが決めるしかなかった
+- **宣言の形と意味がずれていることがある。** `const uint32_t MaxInflightFrames = 2;` は
+  言語としては「インスタンスごとに持つ値」を宣言していたが、初期化子がリテラルで `const` なので
+  **インスタンスごとに変える方法が無い**。設定できる形をしているのに設定できない状態だった
+- **ドキュメントの方が先に正しいことがある。** CLAUDE.md は以前からこの定数を
+  `VulkanContext::MaxInflightFrames` と書いていたが、**その式は当時コンパイルできなかった**
+  （非 static データメンバを型名経由で参照している）。文書が「これは static のはず」という
+  正しい直観で書かれていて、コードだけが追いついていなかった
+- **「本来は◯◯」で片付けず、効き目を分けて測る。** `static constexpr` にする理由として
+  4バイトの節約・コピー代入の delete 回避・定数式で使えること・インスタンス不要を挙げたが、
+  シングルトンなので**実際に効いていたのは最後の1つだけ**だった。言語仕様として正しいことと、
+  このコードベースで効いていることは別
+- **整形と命名は別の軸で、たまたま両方に "Google" が出てくる。** `clang-format` は
+  識別子の名前に一切触れない（空白・改行・整列のみ）。`.clang-format` の
+  `BasedOnStyle: Google` が命名の不統一を生むことは原理的にありえない。
+  ちなみに `BasedOnStyle` は165項目の初期値セットで、このプロジェクトは6項目を上書きしている。
+  ベースを他に変えたときの差分を実測したら、Microsoft / LLVM で30行台、内容は
+  行末コメント前の空白の個数など**3項目の好み**でしかなかった
+- **このプロジェクトの命名規約は書籍由来であって Google style ではない。** 決定的なのは
+  `m_` プレフィックスで、Google の private メンバは `snake_case_`。7/30 に
+  「実態に合わせて」文書化したのだから当然だが、`.clang-format` の1行が
+  誤解の種になっていた（今回 CLAUDE.md を分割した理由）
+- **実態から起こした規約は、実態と衝突しない。** `lib/stage1` のヘッダは一度も
+  検査されていなかったのに、命名違反は1件だけだった。理想から規約を作っていたら、
+  検査していない領域に違反が溜まっていたはず。**規約を「あるべき姿」で書くか
+  「今そうなっている姿」で書くかは、未検査領域の壊れ方を変える**
+- **ツールの分類は実測で確かめる**（7/30「ツールの設定はドキュメントより実測」の再演）。
+  `readability-identifier-naming` は `ConstexprVariable` を `LocalConstant` / `ClassConstant`
+  より**先に**判定する。この優先順位のおかげで「constexpr は `k` 必須、ローカルの `const` は
+  無検査」を両立できた。ルールを書く前に、書きかけの設定で1回走らせて確かめるのが速い
+- 書籍サンプルの `.h.txt` は `.gitignore` で除外されており一度もコミットされていない。
+  **原典と直接比較する手段は今のところ無い**（比較したくなる場面が今回あった）
+
+---
+
 ## 2026-08-12（3）
 
 ### やったこと

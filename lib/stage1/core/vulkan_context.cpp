@@ -343,7 +343,7 @@ void VulkanContext::CreateDescriptorPool() {
 }
 
 void VulkanContext::CreateFrameContexts() {
-    m_frameContext.resize(MaxInflightFrames);
+    m_frameContext.resize(kMaxInflightFrames);
     for (auto& frame : m_frameContext) {
         frame.commandBuffer = CreateCommandBuffer();
         VkFenceCreateInfo fenceCI{
@@ -362,7 +362,7 @@ void VulkanContext::DestroyFrameContexts() {
 }
 
 void VulkanContext::AdvanceFrame() {
-    m_currentFrameIndex = (m_currentFrameIndex + 1) % MaxInflightFrames;
+    m_currentFrameIndex = (m_currentFrameIndex + 1) % kMaxInflightFrames;
 }
 
 // Vulkanの構造体pNextをつなぐ処理簡略化のためのテンプレート

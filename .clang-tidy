@@ -52,7 +52,17 @@ CheckOptions:
   # 匿名 namespace のファイルスコープ変数も GlobalVariable として扱われる（実測）
   readability-identifier-naming.GlobalVariableCase: camelBack
   readability-identifier-naming.GlobalVariablePrefix: 'g_'
-  # ローカル定数・constexpr 定数は無検査。数学記法（Cube 頂点の A..H、PI）を許すため。
-  # なお constexpr の表記は `PI` と `kAssetDirs` で不統一（どちらに寄せるか未決）。
+  # ローカル定数（const）は無検査。数学記法（Cube 頂点の A..H）を許すため。
   readability-identifier-naming.LocalConstantCase: aNy_CasE
-  readability-identifier-naming.ConstexprVariableCase: aNy_CasE
+  # constexpr 定数は k + PascalCase に統一する（kPi, kAssetDirs）。
+  # ローカルの constexpr は自動記憶域期間なので Google style では本来「任意」の領域だが、
+  # 任意のままだと書くたびに迷って表記が割れるため、プロジェクトの決めごととして機械化する。
+  # 局所 constexpr は LocalConstant にも該当するが、clang-tidy は ConstexprVariable を
+  # 優先して判定するため、上の A..H の除外とは両立する（実測確認）。
+  readability-identifier-naming.ConstexprVariableCase: CamelCase
+  readability-identifier-naming.ConstexprVariablePrefix: 'k'
+  # クラスの static const メンバも同じ表記に揃える。未設定だと GlobalVariable として
+  # 判定され、クラス定数に `g_` を提案してくる（実測）。constexpr な static メンバは
+  # 上の ConstexprVariable が優先されるので、ここに来るのは constexpr でないものだけ。
+  readability-identifier-naming.ClassConstantCase: CamelCase
+  readability-identifier-naming.ClassConstantPrefix: 'k'

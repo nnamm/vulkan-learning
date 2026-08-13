@@ -139,13 +139,13 @@ void SimpleCubeApp::CreateCubeGeometry() {
 void SimpleCubeApp::CreateSphereGeometry() {
     const int stackCount = 32;
     const int sliceCount = 48;
-    constexpr auto PI = glm::pi<float>();
-    const auto sliceStep = PI * 2.0f / sliceCount;
-    const auto stackStep = PI / stackCount;
+    constexpr auto kPi = glm::pi<float>();
+    const auto sliceStep = kPi * 2.0f / sliceCount;
+    const auto stackStep = kPi / stackCount;
 
     std::vector<Vertex> vertices;
     for (int stack = 0; stack <= stackCount; ++stack) {
-        auto stackAngle = (float)PI / 2 - stack * stackStep;
+        auto stackAngle = (float)kPi / 2 - stack * stackStep;
 
         for (int slice = 0; slice <= sliceCount; ++slice) {
             auto sliceAngle = slice * sliceStep;
@@ -213,7 +213,7 @@ void SimpleCubeApp::CreateDescriptorSetLayout() {
 
 void SimpleCubeApp::CreateUniformBuffers() {
     auto& vulkanCtx = VulkanContext::Get();
-    assert(vulkanCtx.MaxInflightFrames == m_uniformBuffers.size());
+    assert(VulkanContext::kMaxInflightFrames == m_uniformBuffers.size());
 
     for (uint32_t i = 0; i < m_uniformBuffers.size(); ++i) {
         m_uniformBuffers[i] = UniformBuffer::Create(sizeof(SceneConstants));
