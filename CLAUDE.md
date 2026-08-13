@@ -48,7 +48,26 @@ cmake --build --preset release
 
 ## コーディング規約
 
-- `.clang-format` 適用: Google style ベース、4スペースインデント、100カラム制限
+**整形と命名は別のツールが担当し、由来も別。** 混同しやすいので節を分ける。
+
+### 整形 — `.clang-format`
+
+`BasedOnStyle: Google` に6項目を上書き（4スペースインデント、100カラム制限ほか）。
+ベースは「明示しなかった残り159項目の初期値」を決めているだけで、このプロジェクトが
+Google style を採用しているという意味ではない。整形結果に不満が出たときは、ベースを
+乗り換えるのではなく該当オプションを1行足して上書きする（ベース変更は159項目が
+まとめて動くため、直したい1項目のために知らない項目まで動く）。
+
+なお **clang-format は識別子の名前には一切触れない**。命名は下記の `.clang-tidy` の担当。
+
+### 命名 — `.clang-tidy` の `readability-identifier-naming`
+
+由来は**書籍サンプルのスタイル**であって Google style ではない
+（Google の private メンバは `snake_case_` で、`m_` プレフィックスは使わない）。
+2026-07-30 に実コードの実態を読み取って文書化・機械化したもの。
+唯一の例外は定数の `k` プレフィックスで、これは当時ルールが存在しなかったため
+2026-08-13 に Google style から採った。
+
 - クラス名 / 構造体名: PascalCase（`TriangleApp`, `FrameContext`）
 - インターフェース: I プレフィックス（`ISampleApp`, `IBufferResource`）
 - 関数: PascalCase（メンバー関数 `OnInitialize()`, 自由関数 `LoadShaderModule()`）
@@ -60,11 +79,20 @@ cmake --build --preset release
 - ローカル変数 / 引数: camelCase（`bufferSize`, `stackAngle`）
 - グローバル変数（匿名 namespace 含む）: g\_ プレフィックス（`g_assetRoot`）
 - 名前空間: lower_case（`loader`）
+
+### その他
+
 - `#pragma once` でヘッダーガード
 - 推移的インクルードは行わず、ヘッダファイルは明示的に指定する
 
-上記は `.clang-tidy` の `readability-identifier-naming` で機械化済み。
-`clang-tidy -p build/debug <file>` で検査できる（詳細は `docs/notes/include-investigation.md`）。
+### 検査
+
+`clang-tidy -p build/debug <file>`（詳細は `docs/notes/include-investigation.md`）。
+
+ただし **`lib/stage1` 配下のヘッダは検査されていない**。`HeaderFilterRegex` が
+サブディレクトリを含むパスにマッチしないため（章ディレクトリ直下のヘッダは対象）。
+`lib` のヘッダに書いた名前が規約に従っているかは、今のところ人が見るしかない。
+扱いは未決（`docs/notes/learning-log.md`）。
 
 ## Git 運用
 
