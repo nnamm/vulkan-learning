@@ -61,3 +61,8 @@ CheckOptions:
   # 優先して判定するため、上の A..H の除外とは両立する（実測確認）。
   readability-identifier-naming.ConstexprVariableCase: CamelCase
   readability-identifier-naming.ConstexprVariablePrefix: 'k'
+  # クラスの static const メンバも同じ表記に揃える。未設定だと GlobalVariable として
+  # 判定され、クラス定数に `g_` を提案してくる（実測）。constexpr な static メンバは
+  # 上の ConstexprVariable が優先されるので、ここに来るのは constexpr でないものだけ。
+  readability-identifier-naming.ClassConstantCase: CamelCase
+  readability-identifier-naming.ClassConstantPrefix: 'k'
