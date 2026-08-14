@@ -145,10 +145,10 @@ void SimpleCubeApp::CreateSphereGeometry() {
 
     std::vector<Vertex> vertices;
     for (int stack = 0; stack <= stackCount; ++stack) {
-        auto stackAngle = (float)kPi / 2 - stack * stackStep;
+        auto stackAngle = kPi / 2 - static_cast<float>(stack) * stackStep;
 
         for (int slice = 0; slice <= sliceCount; ++slice) {
-            auto sliceAngle = slice * sliceStep;
+            auto sliceAngle = static_cast<float>(slice) * sliceStep;
 
             auto x = std::cos(stackAngle) * std::cos(sliceAngle);
             auto y = std::sin(stackAngle);
@@ -212,7 +212,6 @@ void SimpleCubeApp::CreateDescriptorSetLayout() {
 }
 
 void SimpleCubeApp::CreateUniformBuffers() {
-    auto& vulkanCtx = VulkanContext::Get();
     assert(VulkanContext::kMaxInflightFrames == m_uniformBuffers.size());
 
     for (uint32_t i = 0; i < m_uniformBuffers.size(); ++i) {
@@ -273,20 +272,6 @@ void SimpleCubeApp::CreateGraphicsPipeline() {
     VkShaderModule fragShaderModule =
         loader::LoadShaderModule(GetAssetPath(AssetType::Shader, "simplecube/cube.frag.spv"));
 
-    VkPipelineShaderStageCreateInfo shaderStages[] = {
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .stage = VK_SHADER_STAGE_VERTEX_BIT,
-            .module = vertShaderModule,
-            .pName = "main",
-        },
-        {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = fragShaderModule,
-            .pName = "main",
-        },
-    };
     // バインディング情報（1つの調停バッファバインディング）
     VkVertexInputBindingDescription bindingDescription{
         .binding = 0,
@@ -360,7 +345,6 @@ void SimpleCubeApp::CreateGraphicsPipeline() {
 void SimpleCubeApp::OnDrawFrame() {
     auto& vulkanCtx = VulkanContext::Get();
     auto& swapchain = vulkanCtx.GetSwapchain();
-    auto device = vulkanCtx.GetVkDevice();
     auto extent = swapchain->GetExtent();
 
     if (vulkanCtx.AcquireNextImage() != VK_SUCCESS) {

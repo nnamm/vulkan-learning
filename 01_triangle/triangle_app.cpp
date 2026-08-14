@@ -128,7 +128,6 @@ void TriangleApp::InitializeGraphicsPipeline() {
 void TriangleApp::OnDrawFrame() {
     auto& vulkanCtx = VulkanContext::Get();
     auto& swapchain = vulkanCtx.GetSwapchain();
-    auto device = vulkanCtx.GetVkDevice();
 
     if (vulkanCtx.AcquireNextImage() != VK_SUCCESS) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

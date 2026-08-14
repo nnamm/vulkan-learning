@@ -20,7 +20,7 @@ VkShaderModule LoadShaderModule(const std::filesystem::path& shaderSpvPath) {
 
     size_t fileSize = static_cast<size_t>(file.tellg());
     std::vector<char> buffer(fileSize);
-    file.seekg(0).read(buffer.data(), fileSize);
+    file.seekg(0).read(buffer.data(), static_cast<std::streamsize>(fileSize));
     file.close();
 
     // VkShaderModuleCreateInfoにバイナリデータを設定
