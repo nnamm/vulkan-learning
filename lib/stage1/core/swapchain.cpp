@@ -150,7 +150,6 @@ VkResult Swapchain::QueuePresent(VkQueue queuePresent) {
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = &m_frames[m_currentIndex].renderComplete;
 
-    auto& vulkanCtx = VulkanContext::Get();
     auto result = vkQueuePresentKHR(queuePresent, &presentInfo);
 
     return result;
@@ -168,7 +167,6 @@ void Swapchain::CreateFrameContext() {
     auto& vulkanCtx = VulkanContext::Get();
     auto vkDevice = vulkanCtx.GetVkDevice();
     m_frames.resize(m_images.size());
-    uint32_t index = 0;
     for (auto& frame : m_frames) {
         VkSemaphoreCreateInfo semCI{
             .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,

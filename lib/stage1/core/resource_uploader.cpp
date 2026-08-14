@@ -26,9 +26,6 @@ void ResourceUploader::Cleanup() {
 
 bool ResourceUploader::UploadBuffer(IBufferResource* target, const void* pData, size_t size,
                                     VkAccessFlags nextAccessMask) {
-    VulkanContext& context = VulkanContext::Get();
-    VkDevice device = context.GetVkDevice();
-
     if (target->IsHostAccessible()) {
         // 直接書き込み可能のため、ここで処理する
         if (void* p = target->Map(); p != nullptr) {
@@ -62,7 +59,6 @@ void ResourceUploader::SubmitAndWait() {
     }
     VulkanContext& vulkanCtx = VulkanContext::Get();
     VkDevice device = vulkanCtx.GetVkDevice();
-    VkCommandPool pool = vulkanCtx.GetCommandPool();
     VkQueue queue = vulkanCtx.GetGraphicsQueue();
 
     // コマンドバッファ確保
