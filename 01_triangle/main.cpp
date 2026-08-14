@@ -122,7 +122,7 @@ int main() {
     try {
         return Run();
     } catch (const std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
+        std::cerr << "Exception: " << e.what() << '\n';
         return -1;
     }
 }
