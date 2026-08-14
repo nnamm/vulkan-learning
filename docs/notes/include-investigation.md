@@ -186,13 +186,13 @@ clang-tidy -p build/debug --fix 02_simplecube/simplecube_app.cpp     # 自動修
 
 ### 導入時点の検出結果（46件、誤検知ゼロ）
 
-| チェック                             | 件数 | 備考                                                         |
-| ------------------------------------ | ---- | ------------------------------------------------------------ |
-| `misc-include-cleaner`               | 30   | 9ファイルに分散。→ `docs/notes/task-misc-include-cleaner.md` |
-| `clang-analyzer-deadcode.DeadStores` | 5    | 未使用ローカル変数                                           |
-| `performance-avoid-endl`             | 4    | `std::endl` → `'\n'`                                         |
-| `bugprone-narrowing-conversions`     | 3    | int→float 2件、size_t→streamsize 1件                         |
-| `readability-identifier-naming`      | 4    | `mainEntryPoint` / `run`（PascalCase 違反）                  |
+| チェック                             | 件数 | 備考                                                                  |
+| ------------------------------------ | ---- | ---------------------------------------------------------------------- |
+| `misc-include-cleaner`               | 30   | 9ファイルに分散。→ `docs/notes/archive/task-misc-include-cleaner.md` |
+| `clang-analyzer-deadcode.DeadStores` | 5    | 未使用ローカル変数                                                    |
+| `performance-avoid-endl`             | 4    | `std::endl` → `'\n'`                                                  |
+| `bugprone-narrowing-conversions`     | 3    | int→float 2件、size_t→streamsize 1件                                  |
+| `readability-identifier-naming`      | 4    | `mainEntryPoint` / `run`（PascalCase 違反）                          |
 
 **`<cmath>` の件は単発の見落としではなく、9ファイルに散らばった同じ構造の問題だった。**
 規約と実態に系統的なずれがあったということ。
