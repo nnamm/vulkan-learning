@@ -145,10 +145,10 @@ void SimpleCubeApp::CreateSphereGeometry() {
 
     std::vector<Vertex> vertices;
     for (int stack = 0; stack <= stackCount; ++stack) {
-        auto stackAngle = (float)kPi / 2 - stack * stackStep;
+        auto stackAngle = kPi / 2 - static_cast<float>(stack) * stackStep;
 
         for (int slice = 0; slice <= sliceCount; ++slice) {
-            auto sliceAngle = slice * sliceStep;
+            auto sliceAngle = static_cast<float>(slice) * sliceStep;
 
             auto x = std::cos(stackAngle) * std::cos(sliceAngle);
             auto y = std::sin(stackAngle);
