@@ -16,7 +16,9 @@ Checks: >
 
 # プロジェクト自身のヘッダも解析対象にする（既定ではヘッダ内の警告は報告されない）。
 # glm / Vulkan は -isystem 経由なので SystemHeaders: false により対象外のまま。
-HeaderFilterRegex: '/(lib/stage[0-9]|[0-9]{2}_[a-z]+)/[^/]*\.h$'
+# 末尾は `[^/]*` ではなく `.*` — 前者だと `lib/stage1/core/vulkan_context.h` のように
+# サブディレクトリを挟むパスにマッチせず、lib のヘッダ14本が1本も検査されなかった。
+HeaderFilterRegex: '/(lib/stage[0-9]|[0-9]{2}_[a-z]+)/.*\.h$'
 
 CheckOptions:
   # glm / Vulkan は下位ヘッダを束ねる傘ヘッダ構成のため、include-cleaner が

@@ -96,10 +96,12 @@ Google style を採用しているという意味ではない。整形結果に�
 
 `clang-tidy -p build/debug <file>`（詳細は `docs/notes/include-investigation.md`）。
 
-ただし **`lib/stage1` 配下のヘッダは検査されていない**。`HeaderFilterRegex` が
-サブディレクトリを含むパスにマッチしないため（章ディレクトリ直下のヘッダは対象）。
-`lib` のヘッダに書いた名前が規約に従っているかは、今のところ人が見るしかない。
-扱いは未決（`docs/notes/learning-log.md`）。
+**`lib/stage1` 配下のヘッダも検査対象**（2026-08-15 に `HeaderFilterRegex` を修正）。
+それまではサブディレクトリを挟むパスにマッチせず、lib のヘッダ14本が1本も見られていなかった。
+
+ただし **`misc-include-cleaner` は main file（`.cpp`）しか見ない**ため、
+「ヘッダが自分の使う型を自分で include しているか」はこの検査では分からない。
+別の道具立てが要る（`docs/notes/learning-log.md`）。
 
 ## Git 運用
 
