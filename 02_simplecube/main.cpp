@@ -38,7 +38,7 @@ int MainEntryPoint() {
 
     // Vulkanの初期化
     auto& vulkanCtx = VulkanContext::Get();
-    vulkanCtx.GetWindowSystemExtensions = [=](auto& extensionList) {
+    vulkanCtx.getWindowSystemExtensions = [=](auto& extensionList) {
         uint32_t extCount = 0;
         const char** extensions = glfwGetRequiredInstanceExtensions(&extCount);
         if (extCount > 0) {
