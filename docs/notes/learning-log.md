@@ -11,6 +11,74 @@
 
 ---
 
+## 2026-08-15
+
+### やったこと
+
+**`lib/stage1` のヘッダを clang-tidy の検査対象に入れ、出た5件を処理した。** 前回の「次にやること」3番の前半。
+ブランチ `refactor/check-lib-stage1-headers`、理由ごとに3コミット。
+
+- **`HeaderFilterRegex` の末尾を `[^/]*\.h$` → `.*\.h$`**。`lib/stage1/core/…` のように
+  サブディレクトリを挟むパスに届いていなかった。ヘッダ14本が対象に入る
+- **2つの検査を無効化した**（4件）。`bugprone-crtp-constructor-accessibility` 3件は
+  CRTP 基底の `protected` コンストラクタで、`private` + `friend` にすると**書籍サンプルの設計を
+  書き換える**ことになる。`performance-enum-size` 1件（`AssetType`）は直すのが1トークンだが、
+  この enum は配列にもメンバにも持たれないので**実効がゼロ**。理由の質が違うが結論は同じ。
+  行への `NOLINT` ではなく `Checks` で切ったのは、決めたことが1箇所に残るため
+- **`GetWindowSystemExtensions` → `getWindowSystemExtensions`**（4箇所）。`std::function` の
+  パブリックメンバなので camelCase。関数だと誤読させる名前だった
+- **実測**: `run-clang-tidy` **ヘッダ込みで0件**、ビルド完走、`clang-format --dry-run --Werror` 差分なし
+
+**ヘッダの自己完結性は「常設の仕組みを作る」と決めた（未着手）。** 判断材料として、
+scratchpad 上のコピーで全パターンを測ってからの決定（下の気づき）。
+
+### 現在地: 4章完了・振り返り中。5章は未着手（前回から変わらず）
+
+`run-clang-tidy` は0件。**今回から lib のヘッダ14本も対象**。ただし
+`misc-include-cleaner` はヘッダを見ていないので、そこは0件の射程外（次の課題）。
+
+### 次にやること
+
+1. **5章の写経を開始する**（最優先。仮説2つの検証も継続）
+   - 深度バッファの遷移が `lib` 側に入るか
+   - `VulkanContext::SubmitAndWait()` の呼び出し元が現れるか
+2. **`Swapchain::Recreate()` の2回目以降のリーク**（`stage1-map.md` §7）。リサイズ対応時に必ず踏む
+3. **ヘッダの自己完結性を検査する仕組みを常設する**（今回「やる」と決めた。手順は実測済み）
+   1. `vulkan_context.h:8` の冗長な `#include "core/command_buffer.h"` を消してサイクルを解く。
+      同時に4つの `.cpp`（`triangle_app` / `simplecube_app` / `vulkan_context` / `resource_uploader`）に
+      `core/command_buffer.h` を1行ずつ足す
+   2. ヘッダ8本に不足 include を10行追加（`<cstdint>` 6・`<memory>` 2・`<vector>` 1・`<cstddef>` 1）
+   3. 各ヘッダを単独 TU としてコンパイルする仕組みを用意する（CMake target かスクリプト）。
+      **順序は 1 → 2 → 3。** サイクルが残ったまま 3 をやると嘘の結果が出る
+4. Windows 環境でもビルドと clang-tidy を通す
+
+### 気づき
+
+- **壊れた解析は「壊れた」と分かる形では出てこない。** ヘッダを単独 TU にする方式は
+  `#pragma once` が main file に効かないため、`vulkan_context.h` ↔ `command_buffer.h` の
+  相互 include で `redefinition` エラーになる。このとき出た「`functional` / `memory` / `vector` が
+  未使用」の4件は**もっともらしい嘘**で、サイクルを解いたら消えた。件数が出ていることと
+  正しく測れていることは別
+- **`misc-include-cleaner` は「綴られた名前」しか見ない。** `auto commandBuffer = ...` で受けると
+  `CommandBuffer` という文字列がファイルに現れないので、include を要求されない。実際、
+  `vulkan_context.h` の冗長な include を試しに消すと**4つの `.cpp` が壊れた**（実測）。
+  8/12 の「.cpp は0件」は、`auto` の分だけさらに狭い保証だった（8/12「main file しか見ない」→
+  8/14「参照束縛は DeadStores の対象外」に続く3例目）
+- **「厳密にすると構成が変わるのでは」は、実測で否定できる形の問いだった。** scratchpad に
+  `lib/stage1` を丸ごとコピーして最後まで通した結果、必要なのは
+  **`#include` 14行の追加と1行の削除だけ**で、
+  クラス構成・継承・責務分割は1行も動かなかった。**「たぶん大ごとになる」で止めずに、
+  コピーの上で最後まで走らせてから決める**
+- **設定ファイルは、コピーしたコードには付いてこない。** scratchpad のコピーを測ったとき
+  `misc-include-cleaner` が **8件 → 85件**に化けた。`.clang-tidy` の探索は**解析対象ファイルからの
+  上り**なので、`$TMPDIR` に置いたコピーには `IgnoreHeaders`（`glm/.*;vulkan/.*`）が効かず、
+  7/30 に潰したはずの傘ヘッダ誤検知が全部復活していた。`-config-file` で明示して解決。
+  **測定環境を作るとき、設定が付いてきているかを最初に疑う**
+- **`Checks: >` は YAML の折り畳みブロックなので、中に `#` を書いてもコメントにならない**
+  （チェック名の一部として扱われる）。無効化の理由はキーの外側に書く必要がある
+
+---
+
 ## 2026-08-14（2）
 
 ### やったこと
