@@ -73,7 +73,7 @@ class VulkanContext {
                             VkMemoryPropertyFlags properties) const;
 
     // Function Callback(s)
-    std::function<void(std::vector<const char*>&)> GetWindowSystemExtensions;
+    std::function<void(std::vector<const char*>&)> getWindowSystemExtensions;
 
     // オブジェクトに名前を設定する
     void SetDebugObjectName(void* objectHandle, VkObjectType type, const char* name);

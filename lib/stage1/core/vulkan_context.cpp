@@ -198,7 +198,7 @@ void VulkanContext::CreateInstance(const char* appName) {
 #endif
 
     // GLFWから有効化する拡張機能名を回収
-    GetWindowSystemExtensions(extensionList);
+    getWindowSystemExtensions(extensionList);
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
