@@ -48,8 +48,15 @@ scratchpad 上のコピーで全パターンを測ってからの決定（下の
       同時に4つの `.cpp`（`triangle_app` / `simplecube_app` / `vulkan_context` / `resource_uploader`）に
       `core/command_buffer.h` を1行ずつ足す
    2. ヘッダ8本に不足 include を10行追加（`<cstdint>` 6・`<memory>` 2・`<vector>` 1・`<cstddef>` 1）
-   3. 各ヘッダを単独 TU としてコンパイルする仕組みを用意する（CMake target かスクリプト）。
+   3. 各ヘッダを単独 TU としてコンパイルする仕組みを用意する。
+      **(a) CMake に検査用ターゲットを足す案で行くと決定**（8/15）。`compile_commands.json` に
+      14エントリが載れば `run-clang-tidy` がそのまま食べるので、道具を増やさずに済む。
+      スクリプト案（(b)）は Windows / Linux の分岐を自前で持つことになるため不採用。
       **順序は 1 → 2 → 3。** サイクルが残ったまま 3 をやると嘘の結果が出る
+      - 検査したいのは**レベル2「使う型の include を自分で持っているか」**（ヘッダ自身を
+        main file にして `misc-include-cleaner`）。レベル1「単独でコンパイルが通るか」
+        （`#include "x.h"` だけの薄い `.cpp`）は**14本とも既に通っている**ので、
+        そちらだけ作ると**何も検出しない仕組み**ができあがる
 4. Windows 環境でもビルドと clang-tidy を通す
 
 ### 気づき
