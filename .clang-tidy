@@ -4,6 +4,19 @@
 # 方針: 写経の妨げにならない範囲で「実際のバグ」「暗黙のインクルード依存」「命名規約からの逸脱」
 # を拾う。cppcoreguidelines-* / modernize-* は Vulkan の C API 相手だと大量に鳴る
 # （reinterpret_cast、C 配列、.sType 手書き初期化などは写経では避けられない）ため無効。
+#
+# 個別に切った検査とその理由（`Checks:` は YAML の折り畳みブロックなので、
+# その中に `#` を書いてもコメントにならない。理由はここに書く）:
+#
+# - bugprone-crtp-constructor-accessibility
+#   CRTP 基底（gpu_resource_base.h / buffer_resource.h / image_resource.h）の
+#   protected コンストラクタに鳴る。private + friend にするのが定石だが、
+#   protected は書籍サンプルの設計そのもの。3ファイルに friend 宣言を足すと
+#   写経の型が変わるため、指摘のほうを止める。
+# - performance-enum-size
+#   列挙子4個の enum（AssetType）に「基底型を uint8_t にすれば3バイト減る」と鳴る。
+#   直すのは1トークンだが、この enum は配列にもメンバにも持たれないので実効はゼロ。
+#   効かない変更で書籍サンプルとの差分を増やさない。
 
 Checks: >
   -*,
@@ -12,7 +25,9 @@ Checks: >
   misc-include-cleaner,
   performance-*,
   readability-identifier-naming,
-  -bugprone-easily-swappable-parameters
+  -bugprone-easily-swappable-parameters,
+  -bugprone-crtp-constructor-accessibility,
+  -performance-enum-size
 
 # プロジェクト自身のヘッダも解析対象にする（既定ではヘッダ内の警告は報告されない）。
 # glm / Vulkan は -isystem 経由なので SystemHeaders: false により対象外のまま。
