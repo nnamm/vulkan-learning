@@ -1,4 +1,6 @@
 ﻿#pragma once
+#include <memory>
+
 #include "core/image_barrier.h"
 #include "core/vulkan_context.h"
 

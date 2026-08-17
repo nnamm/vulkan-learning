@@ -1,6 +1,9 @@
 ﻿#pragma once
 #include <vulkan/vulkan.h>
 
+#include <cstdint>
+#include <memory>
+
 #include "core/gpu_resource_base.h"
 
 class IImageResource {

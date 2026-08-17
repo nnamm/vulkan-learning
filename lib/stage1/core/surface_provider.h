@@ -4,6 +4,8 @@
 #endif
 #include <vulkan/vulkan.h>
 
+#include <cstdint>
+
 class ISurfaceProvider {
   public:
     virtual ~ISurfaceProvider() = default;

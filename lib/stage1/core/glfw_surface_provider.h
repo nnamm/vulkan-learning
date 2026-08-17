@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <GLFW/glfw3.h>
 
+#include <cstdint>
+
 #include "surface_provider.h"
 
 class GLFWSurfaceProvider : public ISurfaceProvider {

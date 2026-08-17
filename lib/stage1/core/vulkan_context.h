@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <vector>
