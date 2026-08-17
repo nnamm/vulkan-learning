@@ -1,6 +1,9 @@
 ﻿#pragma once
 #include <vulkan/vulkan.h>
 
+#include <cstdint>
+#include <memory>
+
 #include "core/gpu_resource_base.h"
 
 class IImageResource {
@@ -54,7 +57,7 @@ class DepthBuffer : public ImageResource<DepthBuffer> {
     friend class GpuResourceBase<DepthBuffer>;
 
   public:
-    virtual ~DepthBuffer() { Cleanup(); }
+    virtual ~DepthBuffer() { DepthBuffer::Cleanup(); }
     virtual void Cleanup() override;
 
     bool Initialize(VkExtent2D extent, VkFormat depthFormat);
@@ -78,7 +81,7 @@ class Texture2D : public ImageResource<Texture2D> {
     friend class GpuResourceBase<Texture2D>;
 
   public:
-    virtual ~Texture2D() { Cleanup(); }
+    virtual ~Texture2D() { Texture2D::Cleanup(); }
     virtual void Cleanup() override;
 
     bool Initialize(VkExtent2D extent, VkFormat format, uint32_t mipLevels);
@@ -108,7 +111,7 @@ class StorageImage2D : public ImageResource<StorageImage2D> {
     friend class GpuResourceBase<StorageImage2D>;
 
   public:
-    virtual ~StorageImage2D() { Cleanup(); }
+    virtual ~StorageImage2D() { StorageImage2D::Cleanup(); }
     virtual void Cleanup() override;
 
     bool Initialize(VkExtent2D extent, VkFormat format, uint32_t mipLevels);

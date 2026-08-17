@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "core/buffer_resource.h"
+#include "core/command_buffer.h"  // IWYU pragma: keep（auto 受けだが完全型が必要）
 #include "core/vulkan_context.h"
 
 bool ResourceUploader::Initialize() {

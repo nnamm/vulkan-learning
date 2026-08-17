@@ -23,6 +23,9 @@ find_package(glm CONFIG REQUIRED)
 # 使用する共通ライブラリステージ
 set(LIB_STAGE "stage1")
 
+# 共通ライブラリ（ヘッダの自己完結性を検査するターゲット）
+add_subdirectory(lib/${LIB_STAGE})
+
 # 章ごとのディレクトリ
 add_subdirectory(01_triangle)
 add_subdirectory(02_simplecube)

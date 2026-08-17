@@ -26,7 +26,7 @@ class BufferResource : public GpuResourceBase<T>, public IBufferResource {
     BufferResource(const BufferResource&) = delete;
     BufferResource& operator=(const BufferResource&) = delete;
 
-    virtual ~BufferResource() { Cleanup(); }
+    virtual ~BufferResource() { BufferResource::Cleanup(); }
     virtual void Cleanup();
 
     bool IsHostAccessible() const override {

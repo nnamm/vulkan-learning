@@ -1,11 +1,10 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <vector>
-
-#include "core/command_buffer.h"
 
 class Swapchain;
 class CommandBuffer;

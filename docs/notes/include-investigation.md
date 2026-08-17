@@ -184,6 +184,31 @@ run-clang-tidy -p build/debug -quiet -j 8                            # 全ファ
 clang-tidy -p build/debug --fix 02_simplecube/simplecube_app.cpp     # 自動修正
 ```
 
+### ヘッダの自己完結性を検査する（2026-08-17）
+
+`misc-include-cleaner` は **main file しか見ない**。通常のビルドでヘッダが main file に
+なることは無い（`.cpp` に貼り付けられるテキストでしかない）ので、上の `run-clang-tidy` が
+0件でも「ヘッダが自分の使う型を include しているか」は**一度も測られていない**。
+
+`lib/stage1/CMakeLists.txt` の `stage1_header_check` が、各ヘッダを単独の翻訳単位として
+コンパイルする。これで `compile_commands.json` にヘッダが載り、`run-clang-tidy` が
+そのままヘッダを解析する（**専用の手順は無い。上の「使い方」がそのまま効く**）。
+
+```sh
+cmake --preset debug                                  # ヘッダ14本が compile_commands.json に載る
+cmake --build build/debug --target stage1_header_check # レベル1: 単独でコンパイルが通るか
+run-clang-tidy -p build/debug -quiet                  # レベル2: 使う型の include を持っているか
+```
+
+検査は2段階で、**レベル1だけを作っても何も検出しない**。`#include "x.h"` 1行だけの薄い
+`.cpp` を生成する方式（=レベル1）は、14本とも導入前から通っていた。欲しいのはレベル2で、
+そのためには**ヘッダ自身が main file である**必要がある。
+
+前提として **include のサイクルを解いておくこと**。`#pragma once` は main file 自身には
+効かないため、相互 include があると `redefinition` になり、そこで出る指摘は嘘になる
+（2026-08-15、`vulkan_context.h` ↔ `command_buffer.h` で「`functional` / `memory` /
+`vector` が未使用」という4件が出て、サイクルを解いたら消えた）。
+
 ### 導入時点の検出結果（46件、誤検知ゼロ）
 
 | チェック                             | 件数 | 備考                                                                  |

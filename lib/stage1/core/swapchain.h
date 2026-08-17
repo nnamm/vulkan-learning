@@ -1,4 +1,7 @@
 #pragma once
+#include <cstdint>
+#include <vector>
+
 #include "core/vulkan_context.h"
 
 class VulkanContext;
