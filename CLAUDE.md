@@ -91,6 +91,9 @@ Google style を採用しているという意味ではない。整形結果に�
 
 - `#pragma once` でヘッダーガード
 - 推移的インクルードは行わず、ヘッダファイルは明示的に指定する
+- **コンパイルに必要なのに `misc-include-cleaner` が「未使用」と言う include には
+  `// IWYU pragma: keep` を付ける**（`auto` 受けで型名が綴られない場合など。
+  検査を切らずに、その1行だけを名指しで止める）
 
 ### 検査
 
@@ -99,9 +102,17 @@ Google style を採用しているという意味ではない。整形結果に�
 **`lib/stage1` 配下のヘッダも検査対象**（2026-08-15 に `HeaderFilterRegex` を修正）。
 それまではサブディレクトリを挟むパスにマッチせず、lib のヘッダ14本が1本も見られていなかった。
 
-ただし **`misc-include-cleaner` は main file（`.cpp`）しか見ない**ため、
-「ヘッダが自分の使う型を自分で include しているか」はこの検査では分からない。
-別の道具立てが要る（`docs/notes/learning-log.md`）。
+**ヘッダは単独の翻訳単位としてもコンパイルされる**（2026-08-17、`lib/stage1/CMakeLists.txt` の
+`stage1_header_check` ターゲット）。`misc-include-cleaner` は main file しか見ないので、
+ヘッダを main file にしない限り「ヘッダが自分の使う型を自分で include しているか」は
+分からない。このターゲットが `compile_commands.json` にヘッダ14本を載せるため、
+`run-clang-tidy` は追加の道具なしでヘッダを解析できる。ターゲットは通常のビルドに含まれる
+（「単独でコンパイルが通るか」も常時保証されるため）。
+
+- **ヘッダを新規追加したときの登録作業は不要**（`file(GLOB_RECURSE ... CONFIGURE_DEPENDS)`
+  で自動収集）
+- `LANGUAGE CXX` と `-Wno-pragma-once-outside-header` は**手法に由来する必然**であって、
+  コード側の問題ではない（理由は同 CMakeLists のコメント）
 
 ## Git 運用
 
