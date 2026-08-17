@@ -14,6 +14,7 @@
 
 #include "core/asset_path.h"
 #include "core/buffer_resource.h"
+#include "core/command_buffer.h"  // IWYU pragma: keep（auto 受けだが完全型が必要）
 #include "core/graphics_pipeline_builder.h"
 #include "core/image_barrier.h"
 #include "core/image_resource.h"

@@ -5,8 +5,6 @@
 #include <memory>
 #include <vector>
 
-#include "core/command_buffer.h"
-
 class Swapchain;
 class CommandBuffer;
 class ISurfaceProvider;

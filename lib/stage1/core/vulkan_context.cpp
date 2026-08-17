@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "core/command_buffer.h"
 #include "core/surface_provider.h"
 #include "core/swapchain.h"
 
