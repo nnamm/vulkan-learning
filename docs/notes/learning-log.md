@@ -11,6 +11,77 @@
 
 ---
 
+## 2026-10-20
+
+### やったこと
+
+**macOS（MacBook Pro / M4 Pro / macOS 27）を3台目の写経環境にした。** 10/18〜10/20 の2セッション。
+ブランチ `feat/macos-environment`。
+
+- **翻訳層は KosmicKrisp を選んだ**（MoltenVK ではなく）。LunarG 製の Mesa ベースの
+  Vulkan-on-Metal ドライバで、**Vulkan 1.4 の CTS に合格した conformant 実装**
+  （Vulkan SDK 1.4.363.0 から正式同梱、macOS 26 以降 + Apple Silicon）。MoltenVK は Khronos が
+  非推奨にしており、README 自身が「仕様に完全準拠していない」と書いている。
+  `vulkaninfo --summary` で `driverName = KosmicKrisp` / `conformanceVersion = 1.4.3.2` を確認
+- **portability 拡張は不要**。KosmicKrisp は conformant なので、`VK_KHR_portability_enumeration` を
+  有効にしなくてもローダーに列挙される（MoltenVK を使う場合だけ必要）。fish の設定で
+  `VK_DRIVER_FILES` を `libkosmickrisp_icd.json` に固定した
+- **依存は configure だけで揃った**。glfw3 3.3.8 は vcpkg のポートに `supports` の制限がなく、
+  `arm64-osx` 向けにソースからビルドされた。コンパイラは Apple Clang、標準ライブラリは libc++
+- **コード側の修正は2点だけ**
+  1. `main.cpp` 2本に `__APPLE__` の分岐を追加 — `GetExecutableDir()` を
+     `_NSGetExecutablePath()`（`<mach-o/dyld.h>`）で実装し、`main()` を用意
+  2. `swapchain.cpp` の枚数計算（下の気づき1つめ。**未コミット**）
+- **`builtin-baseline` を更新**（`827a2e1` → `bf19794`）。単独コミットに分けた
+- **実行確認**: `VkTriangle` は3秒間、検証レイヤーの出力ゼロで動作。`VkSimpleCube` も動作するが、
+  既知の `vkCmdBeginRendering-pRenderingInfo-09588`（深度バッファが `UNDEFINED` のまま）が
+  出る（`stage1-map.md` で5章送りにしたもの。Linux と同じ指摘が macOS でも同じように出た）。
+  画面の見た目はまだ確認していない
+
+### 現在地: 4章完了・振り返り中。5章は未着手。写経環境が Kubuntu + macOS の2台になった
+
+`lib/stage1` は Vulkan のコードに手を入れずに macOS で動いた（`main.cpp` の OS 分岐と、
+スワップチェーンの潜在バグ修正のみ）。
+
+### 次にやること
+
+1. **`swapchain.cpp` の修正をコミット**する（コメントアウトした旧コード2行は消してから。
+   経緯はコミット本文に書く）。Kubuntu でもビルドと実行を確認する
+2. **`bugprone-invalid-enum-default-initialization` 2件の扱いを決める**（下の気づき）。
+   候補は「行に `NOLINT`」「指示付き初期化子に書き換え」「`.clang-tidy` で切る」
+3. ブランチを PR にして `main` にマージする
+4. **5章の写経を開始する**（前回からの最優先。仮説2つの検証も継続）
+5. stage2 に進む前に、KosmicKrisp が `VK_KHR_ray_tracing_pipeline` / `VK_EXT_mesh_shader` を
+   出しているか `vulkaninfo` で確認する（公式情報では確認できなかった）
+
+### 気づき
+
+- **macOS が、Kubuntu では見えなかった潜在バグを表に出した。** `swapchain.cpp` は
+  `minImageCount = caps.minImageCount + 1` で、`maxImageCount` を確かめていなかった。
+  Linux の Mesa は `maxImageCount = 0`（上限なし）を返すので、たまたま正しい値になっていた。
+  この Mac は `min = max = 3` を返すので 4 が範囲外になり（VUID-…-01272）、KosmicKrisp が値を
+  そのまま `CAMetalLayer.maximumDrawableCount` に渡して、Metal が ObjC 例外で SIGABRT した。
+  **原因はドライバではなくアプリ側の仕様違反で、それを検証レイヤーが名指しした**。
+  「翻訳層のバグか Vulkan のバグか分からなくなる」という当初の懸念に対する、最初の実例になった
+- **教訓は「厳しい環境で試せ」ではなく「caps は範囲として扱え」。** 仕様の厳しさは環境によらず同じで、
+  違ったのはドライバが返す（正当な）値と、違反したときの容赦のなさ。定石は
+  「望む枚数を `minImageCount` 以上、`maxImageCount` 以下（0 は上限なし）に収める」。
+  元のコードで計算されたまま使われていなかった `imageCount = std::max(3u, ...)` が、
+  その意図の名残に見える（書籍の原文かどうかは要確認）
+- **2台目の環境は、道具の版の差も持ち込む。** Homebrew の LLVM 23.1.3 の clang-tidy が、
+  `VkSwapchainCreateInfoKHR info{};` に新しい指摘を2件出した。`preTransform` と `compositeAlpha` の
+  型（`*FlagBitsKHR`）は最小値が `0x1` で、0 という列挙子を持たないため、`{}` による 0 初期化が
+  「無効な値」と判定される。直後に代入しているので実害はない。Kubuntu で出ないのは、
+  clang-tidy が古くてこの検査がまだないからだと推測（要確認）
+- **推移的インクルードの解消が、移植で効いた（推測）。** libstdc++ と libc++ は、ヘッダが内部で
+  読み込むヘッダがかなり違う。それでもコンパイラと標準ライブラリを両方変えて一発で通ったのは、
+  8月の「推移的インクルードは行わない」の機械化が効いた可能性が高い
+- **vcpkg はマニフェストモード。** 依存の宣言は `vcpkg.json`、インストールは CMake の configure
+  （toolchain の `vcpkg.cmake`）に任せる。`vcpkg install <名前>`（クラシックモード）では
+  バージョンを固定できないので、このプロジェクトでは使わない。追加は `vcpkg add port <名前>`
+
+---
+
 ## 2026-08-17
 
 ### やったこと
