@@ -38,12 +38,15 @@ bool Swapchain::Recreate(uint32_t width, uint32_t height) {
             break;
         }
     }
-    auto imageCount = std::max(3u, caps.minImageCount);
+    uint32_t imageCount = std::max(3u, caps.minImageCount);
+    if (caps.maxImageCount > 0) {
+        imageCount = std::min(imageCount, caps.maxImageCount);
+    }
 
     VkSwapchainCreateInfoKHR info{};
     info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     info.surface = surface;
-    info.minImageCount = caps.minImageCount + 1;
+    info.minImageCount = imageCount;
     info.imageFormat = format.format;
     info.imageColorSpace = format.colorSpace;
     info.imageExtent = extent;
