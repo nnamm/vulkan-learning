@@ -4,12 +4,21 @@
 
 #include <cstdio>
 #include <exception>
+
 #elif defined(__linux__)
 #include <linux/limits.h>
 #include <unistd.h>
 
 #include <iostream>
 #include <stdexcept>
+
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+
+#include <cstdint>
+#include <iostream>
+#include <stdexcept>
+#include <vector>
 #endif
 
 #include <GLFW/glfw3.h>
@@ -75,6 +84,7 @@ static fs::path GetExecutableDir() {
     GetModuleFileNameW(nullptr, exePath, MAX_PATH);
     return fs::path(exePath).parent_path();
 }
+
 #elif defined(__linux__)
 static fs::path GetExecutableDir() {
     char exePath[PATH_MAX] = {0};
@@ -84,6 +94,17 @@ static fs::path GetExecutableDir() {
     }
     exePath[len] = '\0';
     return fs::path(exePath).parent_path();
+}
+
+#elif defined(__APPLE__)
+static fs::path GetExecutableDir() {
+    uint32_t size = 0;
+    _NSGetExecutablePath(nullptr, &size);
+    std::vector<char> exePath(size);
+    if (_NSGetExecutablePath(exePath.data(), &size) != 0) {
+        throw std::runtime_error("Failed to get executable path");
+    }
+    return fs::canonical(exePath.data()).parent_path();
 }
 #endif
 
@@ -117,7 +138,8 @@ int __stdcall wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int
         return -1;
     }
 }
-#elif defined(__linux__)
+
+#elif defined(__linux__) || defined(__APPLE__)
 int main() {
     try {
         return Run();

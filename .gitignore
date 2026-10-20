@@ -17,6 +17,7 @@ lib/stage1/core/*.txt
 lib/stage1/render/*.txt
 lib/stage2/
 
+vcpkg_installed/
 .cache/
 _tmp/
 build/
