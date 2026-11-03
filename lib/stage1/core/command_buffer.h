@@ -6,7 +6,7 @@
 
 class CommandBuffer {
   public:
-    CommandBuffer(VkCommandBuffer commandBuffer);
+    explicit CommandBuffer(VkCommandBuffer commandBuffer);
     virtual ~CommandBuffer();
 
     void Begin(VkCommandBufferUsageFlags usageFlag = 0);
