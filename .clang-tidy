@@ -5,6 +5,14 @@
 # を拾う。cppcoreguidelines-* / modernize-* は Vulkan の C API 相手だと大量に鳴る
 # （reinterpret_cast、C 配列、.sType 手書き初期化などは写経では避けられない）ため無効。
 #
+# 個別に足した検査とその理由:
+#
+# - google-explicit-constructor
+#   単一引数コンストラクタ（と変換演算子）の explicit 付け忘れを拾う。
+#   付け忘れると、その型を const 参照や値で受ける関数に元の型を渡したとき、
+#   一時オブジェクトが黙って作られる。google-* を丸ごと有効にすると命名・整形の
+#   流儀まで持ち込まれるため、この1本だけを名指しで足す。
+#
 # 個別に切った検査とその理由（`Checks:` は YAML の折り畳みブロックなので、
 # その中に `#` を書いてもコメントにならない。理由はここに書く）:
 #
@@ -22,6 +30,7 @@ Checks: >
   -*,
   bugprone-*,
   clang-analyzer-*,
+  google-explicit-constructor,
   misc-include-cleaner,
   performance-*,
   readability-identifier-naming,
