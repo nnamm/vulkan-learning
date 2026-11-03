@@ -15,6 +15,8 @@ class Swapchain {
     VkResult AcquireNextImage();
     VkResult QueuePresent(VkQueue queuePresent);
 
+    // 書籍サンプルの設計として意図された暗黙変換（CommandBuffer と同じ方針）。
+    // NOLINTNEXTLINE(google-explicit-constructor)
     operator const VkSwapchainKHR() { return m_swapchain; }
 
     VkSurfaceFormatKHR GetFormat() const { return m_imageFormat; }

@@ -11,6 +11,58 @@
 
 ---
 
+## 2026-11-03
+
+### やったこと
+
+**`explicit` の意味を調べたことをきっかけに、`google-explicit-constructor` を常設した。**
+ブランチ `chore/clang-tidy-explicit-constructor`、理由ごとに3コミット。
+
+- **検査を1本だけ名指しで追加**した。`google-*` をまとめて有効にすると Google の命名・整形の
+  流儀まで入ってくるため、その形は採らなかった
+- **既存コードで4件の警告が出た**
+  - `CommandBuffer(VkCommandBuffer)` コンストラクタ：`explicit` を付けた。生成箇所は
+    `make_shared` による直接初期化だけなので、呼び出し側の変更はない
+  - `CommandBuffer` の `operator VkCommandBuffer()`（const 版と非 const 版）と
+    `Swapchain` の `operator const VkSwapchainKHR()`：理由付きの `NOLINTBEGIN` /
+    `NOLINTNEXTLINE` で止めた（行末の `NOLINT` だと100カラムを超えるため）
+- **実測**: この検査の警告は0件。デバッグビルドが通り、clang-format の差分もない
+
+### 現在地: 4章完了・振り返り中。5章は未着手
+
+10/20 の「次にやること」の1と3（`swapchain.cpp` の修正のコミットと PR #20 のマージ）は完了済み。
+
+### 次にやること
+
+1. **`bugprone-invalid-enum-default-initialization` 2件の扱いを決める**（10/20 からの持ち越し）。
+   C++ として厳密には良くない書き方、という認識までは持てた。対処方法はまだ決めていない
+2. **5章の写経を開始する**（最優先）
+3. stage2 に進む前に、KosmicKrisp が `VK_KHR_ray_tracing_pipeline` / `VK_EXT_mesh_shader` を
+   出しているか `vulkaninfo` で確認する
+
+### 気づき
+
+- **`explicit` を付けられるのはコンストラクタと変換演算子だけ。** 普通のメソッドには付けられない。
+  引数1つで呼べるコンストラクタは**暗黙の型変換**も兼ねてしまい、`explicit` はその変換を禁じる。
+  `T t(x);`（直接初期化）はどちらでも通り、`T t = x;` や `const T&` 引数への `x` の受け渡しが
+  `explicit` ありでエラーになる
+- **`CommandBuffer` では、付け忘れが実害につながりうる。** デストラクタが `vkFreeCommandBuffers` を
+  呼ぶため、生のハンドルから暗黙に作られた一時オブジェクトが文の終わりで破棄されると、
+  元のコマンドバッファまで解放される。調べ始めた時点では「予防にすぎない」と見ていた
+- **C++ の慣用は「所有する側のラッパーは、生ハンドルへ暗黙に変換させない」。**
+  `std::string::c_str()` や `std::unique_ptr::get()` がその例。本来なら変換演算子を削除して `Get()` に
+  一本化するところだが、それをすると今回の14か所だけでなく、今後の章の `*commandBuffer` も毎回
+  読み替えることになる。**写経の型を保つほうを選んだ**（これまで `.clang-tidy` で検査を切ってきたのと
+  同じ方針）。変換演算子を `explicit` にするのは `static_cast` が要るぶん `Get()` より悪く、中途半端
+- **NOLINT は「後回し」にも「判断の記録」にもなる。** 違いは理由の書き方にある。「あとで直す」なら
+  一時しのぎ、「規則の前提がここには当てはまらない」なら恒久的な判断。Rust の `unsafe` に付ける
+  `// SAFETY:` コメントに当たる。Google C++ Style Guide 自身も、暗黙変換が適切な型には
+  免除の手続きを用意している（細部の文言は未確認）
+- **`Swapchain` の `operator const VkSwapchainKHR()` の `const` は書籍の原文どおり。** 値で返す
+  ポインタ型に付けたトップレベルの `const` は意味を持たないが、写経の型として残している
+
+---
+
 ## 2026-10-20
 
 ### やったこと
